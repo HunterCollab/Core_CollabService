@@ -21,12 +21,13 @@ def login():
         return json.dumps({ 'error': 'Invalid Credentials' })
 
 
-#generates an encrypted auth token using the secret key valid for 600 seconds
+SECRET_KEY = b'-\x1c\x9b\xa7x\xacH\nE{\x85=\xa6\x0e[\xe2\xe3\xb2\x01D\xc4\xd2x\x0f'
+#generates an encrypted auth token using the encrypted using the secret key valid for 24 hours
 def encode_auth_token(user_id):
-    SECRET_KEY = b'-\x1c\x9b\xa7x\xacH\nE{\x85=\xa6\x0e[\xe2\xe3\xb2\x01D\xc4\xd2x\x0f'
+    
     try:
         payload = {
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=600),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=1),
             'iat': datetime.datetime.utcnow(),
             'userid': user_id
         }
