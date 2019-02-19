@@ -4,19 +4,31 @@ import json
 import datetime
 from flask import Blueprint, request, Response
 from functools import wraps
+from services.DBConn import db
+
+userDB = db.users
 
 auth_api = Blueprint('auth_api', __name__)
 
 @auth_api.route("/login")
 def login():
-    username = request.args.get("username")
+    username = request.args.get("username").lower()
     password = request.args.get("password")
-    if (username == "admin" and password == "admin"):
-        authtoken = encode_auth_token(user_id = 1).decode("utf-8") 
-        print (authtoken)
-        return json.dumps({ 'token': authtoken })
-    else:
-        return json.dumps({ 'error': 'Invalid Credentials' })
+
+    QUERY = {'username': username}
+    try:
+        record = userDB.find_one(QUERY)
+        if record is None:
+            return json.dumps({ 'success': False, 'error': "User doesn't exist." })
+        else:
+            actualPassword = record['password']
+            if (password == actualPassword):
+                authtoken = encode_auth_token(username).decode("utf-8") 
+                return json.dumps({ 'token': authtoken })
+            else:
+                return json.dumps({ 'error': 'Invalid Password' })
+    except:
+        return json.dumps({ 'success': False, 'error': "Server error while checking if user exists." })
 
 
 SECRET_KEY = b'-\x1c\x9b\xa7x\xacH\nE{\x85=\xa6\x0e[\xe2\xe3\xb2\x01D\xc4\xd2x\x0f'
