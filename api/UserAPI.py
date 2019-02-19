@@ -7,27 +7,20 @@ import json
 user_api = Blueprint('user_api', __name__)
 userDB = db.users
 
-@user_api.route("/")
-@api.AuthorizationAPI.requires_auth
-def userApiHelloWorld():
-    return request.userNameFromToken + "Hello World from the User API"
-
 @user_api.route("/createUser")
 def createUser():
     username = request.args.get('username')
-    if not username: return json.dumps({ 'success': False, 'error': "Username parameter was not provided." })
+    if not username: return json.dumps({ 'error': "Username parameter was not provided." })
     password = request.args.get('password')
-    if not password: return json.dumps({ 'success': False, 'error': "Password parameter was not provided." })
-    
-    if "@" not in username: return json.dumps({ 'success': False, 'error': "Username is not a valid email." })
+    if not password: return json.dumps({ 'error': "Password parameter was not provided." })
+    if "@" not in username: return json.dumps({ 'error': "Username is not a valid email." })
     
     username = username.lower()
-    if (username[-18:] != "@myhunter.cuny.edu"): return json.dumps({ 'success': False, 'error': "Email is not a valid @myhunter.cuny.edu email." })
-
-    if (username[:-18] == ""): return json.dumps({ 'success': False, 'error': "@myhunter.cuny.edu email is invalid." })
+    if (username[-18:] != "@myhunter.cuny.edu"): return json.dumps({ 'error': "Email is not a valid @myhunter.cuny.edu email." })
+    if (username[:-18] == ""): return json.dumps({ 'error': "@myhunter.cuny.edu email is invalid." })
     
     passLength = len(password)
-    if (passLength < 6 or passLength > 52): return json.dumps({ 'success': False, 'error': "Password must be at least 6 characters and less than 52 characters long." })
+    if (passLength < 6 or passLength > 52): return json.dumps({ 'error': "Password must be at least 6 characters and less than 52 characters long." })
     
     QUERY = {'username': username}
     try:
@@ -38,11 +31,32 @@ def createUser():
             if (result.inserted_id):
                 return json.dumps({ 'success': True })
             else:
-                return json.dumps({ 'success': False, 'error': "Server error while creating new user." })
+                return json.dumps({ 'error': "Server error while creating new user." })
         else:
-            return json.dumps({ 'success': False, 'error': "User already exists." })
+            return json.dumps({ 'error': "User already exists." })
     except:
-        return json.dumps({ 'success': False, 'error': "Server error while checking if username already exists." })
+        return json.dumps({ 'error': "Server error while checking if username already exists." })
     
     
     return "Hello World from the createUser endpoint"
+
+@user_api.route("/getUserDetails")
+@api.AuthorizationAPI.requires_auth
+def getUserDetails():
+    username = request.args.get('username')
+    if not username:
+        username = request.userNameFromToken
+    else:
+        username = username.lower()
+    
+    QUERY = {'username': username}
+    try:
+        record = userDB.find_one(QUERY)
+        if record is None:
+            return json.dumps({ 'error': "No user details found for username: " + username })
+        else:
+            del record['_id']
+            return json.dumps(record)
+    except Exception as e:
+        print(e)
+        return json.dumps({ 'error': "Server error while checking if username already exists." })
