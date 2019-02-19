@@ -2,10 +2,12 @@ import os
 from flask import Flask
 from api.AuthorizationAPI import auth_api
 from api.UserAPI import user_api
+from api.CollaborationAPI import collab_api
 
 app = Flask(__name__)
 app.register_blueprint(user_api, url_prefix='/user')
 app.register_blueprint(auth_api, url_prefix='/auth')
+app.register_blueprint(collab_api, url_prefix='/collab')
 
 @app.route("/")
 def helloWorld():

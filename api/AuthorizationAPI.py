@@ -14,21 +14,20 @@ auth_api = Blueprint('auth_api', __name__)
 def login():
     username = request.args.get("username").lower()
     password = request.args.get("password")
-
     QUERY = {'username': username}
     try:
         record = userDB.find_one(QUERY)
         if record is None:
-            return json.dumps({ 'success': False, 'error': "User doesn't exist." })
+            return json.dumps({ 'error': "User doesn't exist." })
         else:
             actualPassword = record['password']
             if (password == actualPassword):
                 authtoken = encode_auth_token(username).decode("utf-8") 
-                return json.dumps({ 'token': authtoken })
+                return json.dumps({ 'success': True, 'token': authtoken })
             else:
                 return json.dumps({ 'error': 'Invalid Password' })
     except:
-        return json.dumps({ 'success': False, 'error': "Server error while checking if user exists." })
+        return json.dumps({ 'error': "Server error while checking if user exists." })
 
 
 SECRET_KEY = b'-\x1c\x9b\xa7x\xacH\nE{\x85=\xa6\x0e[\xe2\xe3\xb2\x01D\xc4\xd2x\x0f'
@@ -71,10 +70,10 @@ def requires_auth(f):
         user_name = decode_auth_token(auth_token) #Get userid from authtoken
         if (user_name.startswith('SUCCESS')):
             #set the userNameFromToken var so user can be identified form the request
-            request.userNameFromToken = user_name[6:]
+            request.userNameFromToken = user_name[7:]
             #send control back to actual endpoint function
             return f(*args, **kwargs)
         else:
-            return Response(user_id+ '\n' 'You have to login with proper credentials', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+            return Response('\n' 'You have to login with proper credentials', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
     return decorated
