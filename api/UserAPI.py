@@ -26,9 +26,10 @@ def createUser():
     try:
         record = userDB.find_one(QUERY)
         if record is None:
-            user = { 'username': username, 'password': password }
+            user = { 'username': username, 'password': password, 'github': '', 'linkedin': '', 'skills': [], 'classes': [] }
             result = userDB.insert_one(user)
             if (result.inserted_id):
+                print("created new user: " + username)
                 return json.dumps({ 'success': True })
             else:
                 return json.dumps({ 'error': "Server error while creating new user.", 'code': 7 })
@@ -52,8 +53,49 @@ def getUserDetails():
         if record is None:
             return json.dumps({ 'error': "No user details found for username: " + username })
         else:
-            del record['_id']
+            del record['_id'] #don't send document id
+            del record['password'] #don't send the password
+            print("returned user details: " + username)
             return json.dumps(record)
     except Exception as e:
         print(e)
         return json.dumps({ 'error': "Server error while checking if username already exists." })
+
+@user_api.route("/updateUserDetails", methods=['POST'])
+@api.AuthorizationAPI.requires_auth
+def updateUserDetails():
+    content = request.get_json()
+    print (content)
+    if not ('github' in content and 'linkedin' in content and 'skills' in content and 'classes' in content):
+        return json.dumps({ 'error': "The required four variables were not provided.", 'code': 1 })
+    if not (isinstance(content['skills'], list) and isinstance(content['classes'], list)):
+        return json.dumps({ 'error': "'skills' and 'classes' are not arrays.", 'code': 2 })
+    if not (isinstance(content['github'], str) and isinstance(content['linkedin'], str)):
+        return json.dumps({ 'error': "'github' and 'linkedin' are not strings", 'code': 3 })
+    username = request.userNameFromToken
+    QUERY = {'username': username}
+    try:
+        record = userDB.find_one(QUERY)
+        if record is None:
+            return json.dumps({ 'error': "No user details found for username: " + username })
+        else:
+            result = userDB.update_one(
+                {"username": username},
+                {
+                    "$set": {
+                        "github":content['github'],
+                        "linkedin":content['linkedin'],
+                        "skills":content['skills'],
+                        "classes":content['classes']
+                    }
+                }
+            )
+            if result.matched_count > 0:
+                return json.dumps({ 'success': True })
+            else:
+                return json.dumps({ 'success': False, 'error': 'Updating user data failed for some reason', 'code': 998 })
+    except Exception as e:
+        print(e)
+        return json.dumps({ 'error': "Server error while trying to find user.", 'code': 999 })
+
+    return 'Needds to be removed never come here'
