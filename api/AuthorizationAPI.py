@@ -18,16 +18,16 @@ def login():
     try:
         record = userDB.find_one(QUERY)
         if record is None:
-            return json.dumps({ 'error': "User doesn't exist." })
+            return json.dumps({ 'error': "User doesn't exist.", 'success': False, 'code': 1 })
         else:
             actualPassword = record['password']
             if (password == actualPassword):
                 authtoken = encode_auth_token(username).decode("utf-8") 
                 return json.dumps({ 'success': True, 'token': authtoken })
             else:
-                return json.dumps({ 'error': 'Invalid Password' })
+                return json.dumps({ 'error': 'Invalid Password', 'code': 2 })
     except:
-        return json.dumps({ 'error': "Server error while checking if user exists." })
+        return json.dumps({ 'error': "Server error while checking if user exists.", 'code': 3 })
 
 
 SECRET_KEY = b'-\x1c\x9b\xa7x\xacH\nE{\x85=\xa6\x0e[\xe2\xe3\xb2\x01D\xc4\xd2x\x0f'

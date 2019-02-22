@@ -10,17 +10,17 @@ userDB = db.users
 @user_api.route("/createUser")
 def createUser():
     username = request.args.get('username')
-    if not username: return json.dumps({ 'error': "Username parameter was not provided." })
+    if not username: return json.dumps({ 'error': "Username parameter was not provided.", 'code': 1 })
     password = request.args.get('password')
-    if not password: return json.dumps({ 'error': "Password parameter was not provided." })
-    if "@" not in username: return json.dumps({ 'error': "Username is not a valid email." })
+    if not password: return json.dumps({ 'error': "Password parameter was not provided.", 'code': 2 })
+    if "@" not in username: return json.dumps({ 'error': "Username is not a valid email.", 'code': 3 })
     
     username = username.lower()
-    if (username[-18:] != "@myhunter.cuny.edu"): return json.dumps({ 'error': "Email is not a valid @myhunter.cuny.edu email." })
-    if (username[:-18] == ""): return json.dumps({ 'error': "@myhunter.cuny.edu email is invalid." })
+    if (username[-18:] != "@myhunter.cuny.edu"): return json.dumps({ 'error': "Email is not a valid @myhunter.cuny.edu email.", 'code': 4 })
+    if (username[:-18] == ""): return json.dumps({ 'error': "@myhunter.cuny.edu email is invalid.", 'code': 5 })
     
     passLength = len(password)
-    if (passLength < 6 or passLength > 52): return json.dumps({ 'error': "Password must be at least 6 characters and less than 52 characters long." })
+    if (passLength < 6 or passLength > 52): return json.dumps({ 'error': "Password must be at least 6 characters and less than 52 characters long.", 'code': 6 })
     
     QUERY = {'username': username}
     try:
@@ -31,15 +31,15 @@ def createUser():
             if (result.inserted_id):
                 return json.dumps({ 'success': True })
             else:
-                return json.dumps({ 'error': "Server error while creating new user." })
+                return json.dumps({ 'error': "Server error while creating new user.", 'code': 7 })
         else:
-            return json.dumps({ 'error': "User already exists." })
+            return json.dumps({ 'error': "User already exists.", 'code': 8 })
     except:
-        return json.dumps({ 'error': "Server error while checking if username already exists." })
+        return json.dumps({ 'error': "Server error while checking if username already exists.", 'code': 9 })
     
     
     return "Hello World from the createUser endpoint"
-
+//TODO: Add /user/amILoggedIn endpoint that returns { 'authed': True } or { 'authed': False } 
 @user_api.route("/getUserDetails")
 @api.AuthorizationAPI.requires_auth
 def getUserDetails():
