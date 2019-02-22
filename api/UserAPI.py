@@ -36,10 +36,7 @@ def createUser():
             return json.dumps({ 'error': "User already exists.", 'code': 8 })
     except:
         return json.dumps({ 'error': "Server error while checking if username already exists.", 'code': 9 })
-    
-    
-    return "Hello World from the createUser endpoint"
-//TODO: Add /user/amILoggedIn endpoint that returns { 'authed': True } or { 'authed': False } 
+
 @user_api.route("/getUserDetails")
 @api.AuthorizationAPI.requires_auth
 def getUserDetails():
