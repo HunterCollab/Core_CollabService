@@ -36,10 +36,10 @@ def f(f_stop):
     global allDistinctClasses
     print("Fetching all avaliable skills in the database...")
     allDistinctSkills = userDB.distinct("skills")
-    allDistinctSkills.sort();
+    #allDistinctSkills.sort();
     print("Fetching all avaliable classes in the database...")
     allDistinctClasses = userDB.distinct("classes")
-    allDistinctClasses.sort();
+    #allDistinctClasses.sort();
     if not f_stop.is_set():
         # call f() again in 5 mins
         threading.Timer(60 * 5, f, [f_stop]).start()

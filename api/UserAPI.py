@@ -1,7 +1,9 @@
-from flask import Blueprint, request
+import io
+from flask import Blueprint, request, send_file, Response
 import api.AuthorizationAPI
 from services.DBConn import db
 from pprint import pprint
+from bson import Binary
 import json
 
 user_api = Blueprint('user_api', __name__)
@@ -24,9 +26,9 @@ def createUser():
     
     QUERY = {'username': username}
     try:
-        record = userDB.find_one(QUERY)
+        record = userDB.find_one(QUERY, { '_id': 1 })
         if record is None:
-            user = { 'username': username, 'password': password, 'github': '', 'linkedin': '', 'skills': [], 'classes': [] }
+            user = { 'username': username, 'password': password, 'github': '', 'linkedin': '', 'skills': [], 'classes': [], 'profilePicture': None }
             result = userDB.insert_one(user)
             if (result.inserted_id):
                 print("created new user: " + username)
@@ -49,7 +51,7 @@ def getUserDetails():
     
     QUERY = {'username': username}
     try:
-        record = userDB.find_one(QUERY)
+        record = userDB.find_one(QUERY, { '_id': 1, 'github': 1, 'linkedin': 1, 'skills': 1, 'classes': 1 })
         if record is None:
             return json.dumps({ 'error': "No user details found for username: " + username })
         else:
@@ -75,7 +77,7 @@ def updateUserDetails():
     username = request.userNameFromToken
     QUERY = {'username': username}
     try:
-        record = userDB.find_one(QUERY)
+        record = userDB.find_one(QUERY, { '_id': 1, 'github': 1, 'linkedin': 1, 'skills': 1, 'classes': 1 })
         if record is None:
             return json.dumps({ 'error': "No user details found for username: " + username })
         else:
@@ -99,3 +101,59 @@ def updateUserDetails():
         return json.dumps({ 'error': "Server error while trying to find user.", 'code': 999 })
 
     return 'Needds to be removed never come here'
+
+
+@user_api.route("/getUserPicture")
+@api.AuthorizationAPI.requires_auth
+def getUserPicture():
+    username = request.args.get('username')
+    if not username:
+        username = request.userNameFromToken
+    else:
+        username = username.lower()
+    
+    QUERY = {'username': username}
+    try:
+        record = userDB.find_one(QUERY, { 'profilePicture': 1 })
+        if record is None:
+            return Response(status=404)
+        else:
+            if 'profilePicture' in record and record['profilePicture'] is not None:
+                return send_file(io.BytesIO(record['profilePicture']), attachment_filename='ppic_' + username, mimetype='image/png')
+            else:
+                return Response(status=404)
+    except Exception as e:
+        print(e)
+        return json.dumps({ 'error': "Server error while fetching profile picture", 'code': 1 })
+
+@user_api.route("/updateUserPicture", methods=['POST'])
+@api.AuthorizationAPI.requires_auth
+def updateUserPicture():
+    username = request.userNameFromToken
+    filee = request.files['pic'].read()
+    if not (filee):
+        return json.dumps({ 'error': "No file uploaded with identifier 'pic'", 'code': 1 })
+    print(len(filee))
+    if len(filee) > 1000000 : return json.dumps({ 'error': "File too large.", 'code': 3 })
+    
+    QUERY = {'username': username}
+    try:
+        record = userDB.find_one(QUERY, { 'profilePicture': 1, '_id': 1 })
+        if record is None:
+            return json.dumps({ 'error': "No user found for username: " + username })
+        else:
+            result = userDB.update_one(
+                {"username": username},
+                {
+                    "$set": {
+                        "profilePicture": Binary(filee)
+                    }
+                }
+            )
+            if result.matched_count > 0:
+                return json.dumps({ 'success': True })
+            else:
+                return json.dumps({ 'error': 'Updating user profile picture failed for some reason', 'code': 998 })
+    except Exception as e:
+        print(e)
+        return json.dumps({ 'error': "Server error while updating profile picture", 'code': 2 })
