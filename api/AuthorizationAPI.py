@@ -12,8 +12,11 @@ auth_api = Blueprint('auth_api', __name__)
 
 @auth_api.route("/login")
 def login():
-    username = request.args.get("username").lower()
+    username = request.args.get("username")
     password = request.args.get("password")
+    if not (username): return json.dumps({ 'error': "Username not provided.", 'success': False, 'code': 66 })
+    username = username.lower()
+    if not (password): return json.dumps({ 'error': "Password not provided.", 'success': False, 'code': 67 })
     QUERY = {'username': username}
     try:
         record = userDB.find_one(QUERY)
