@@ -51,7 +51,7 @@ def getUserDetails():
     
     QUERY = {'username': username}
     try:
-        record = userDB.find_one(QUERY, { '_id': 1, 'username': 1, 'github': 1, 'linkedin': 1, 'skills': 1, 'classes': 1 })
+        record = userDB.find_one(QUERY, { 'username': 1, 'github': 1, 'linkedin': 1, 'skills': 1, 'classes': 1 })
         if record is None:
             return json.dumps({ 'error': "No user details found for username: " + username })
         else:
