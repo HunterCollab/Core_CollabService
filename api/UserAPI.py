@@ -55,7 +55,7 @@ def getUserDetails():
         if record is None:
             return json.dumps({ 'error': "No user details found for username: " + username })
         else:
-            #del record['_id'] #don't send document id
+            del record['_id'] #don't send document id
             #del record['password'] #don't send the password
             print("returned user details: " + username)
             return json.dumps(record)
