@@ -100,8 +100,7 @@ def get_collab():
         username = username.lower()
 
     try:
-        print(username)
-        record = collabDB.find({'members': {'$elemMatch':{'username'}}})
+        record = collabDB.find({ 'members': { '$all': [ username ] } })
         if record is None:
             return json.dumps({'error': "No collaborations found for username: " + username})
         else:
