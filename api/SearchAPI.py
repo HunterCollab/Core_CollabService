@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 import api.AuthorizationAPI
 from services.DBConn import db
+import threading
 import json
 
 search_api = Blueprint('search_api', __name__)
@@ -10,27 +11,26 @@ allDistinctSkills = None
 allDistinctClasses = None
 
 
-@search_api.route("/skills")
+@search_api.route("/skills", methods=['GET'])
 @api.AuthorizationAPI.requires_auth
 def searchSkills():
     query = request.args.get('query').lower()
-    ret = [];
+    ret = []
     for skill in allDistinctSkills:
-        if (query in skill.lower()): ret.append(skill)
+        if query in skill.lower():
+            ret.append(skill)
     return json.dumps({'matches': ret})
 
 
-@search_api.route("/classes")
+@search_api.route("/classes", methods=['GET'])
 @api.AuthorizationAPI.requires_auth
 def searchClasses():
     query = request.args.get('query').lower()
-    ret = [];
-    for classs in allDistinctClasses:
-        if (query in classs.lower()): ret.append(classs)
+    ret = []
+    for _class in allDistinctClasses:
+        if query in _class.lower():
+            ret.append(_class)
     return json.dumps({'matches': ret})
-
-
-import threading
 
 
 def f(f_stop):
@@ -47,9 +47,8 @@ def f(f_stop):
         threading.Timer(60 * 5, f, [f_stop]).start()
 
 
-f_stop = threading.Event()
-# start calling f now and every 60 sec thereafter
-f(f_stop)
+# start calling skill & class updates.
+f(threading.Event())
 
 # stop the thread when needed
 # f_stop.set()

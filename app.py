@@ -12,7 +12,7 @@ app.register_blueprint(collab_api, url_prefix='/collab')
 app.register_blueprint(search_api, url_prefix='/search')
 
 
-@app.route("/")
+@app.route("/", methods=['GET'])
 def helloWorld():
     return "Welcome to the Hunter Collab API. There's nothing to see here."
 

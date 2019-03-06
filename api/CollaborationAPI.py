@@ -1,11 +1,9 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 import api.AuthorizationAPI
 from services.DBConn import db
-from pprint import pprint
 from datetime import datetime  # Imported datetime to do the basic date functions.
-from bson import json_util  # Trying a pymongo serializer
+from bson import json_util  # Trying a PyMongo serializer
 import json
-import pymongo
 from pymongo import MongoClient
 
 client = MongoClient('mongodb://localhost:27017')
@@ -72,13 +70,11 @@ def create_collab():
 
             result = collabDB.insert_one(newcollab)  # Upload that list to the server.
 
-            if (result.inserted_id):
+            if result.inserted_id:
                 print("New Collaboration: '" + collabtitle + "' created.")
                 return json.dumps({'success': True})
-
             else:
                 return json.dumps({'error': "Failed to upload new collaboration to database", 'code': 64})
-
 
         except Exception as e:
             print(e)
