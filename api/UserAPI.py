@@ -9,7 +9,7 @@ user_api = Blueprint('user_api', __name__)
 userDB = db.users
 
 
-@user_api.route("/createUser", methods=['GET'])
+@user_api.route("", methods=['PUT'])
 def createUser():
     username = request.args.get('username')
     password = request.args.get('password')
@@ -48,10 +48,10 @@ def createUser():
         return json.dumps({'error': "Server error while checking if username already exists.", 'code': 9})
 
 
-@user_api.route("/getUserDetails", methods=['GET'])
+@user_api.route("/", methods=['GET'], defaults={'username': None})
+@user_api.route("/<username>", methods=['GET'])
 @api.AuthorizationAPI.requires_auth
-def getUserDetails():
-    username = request.args.get('username')
+def getUserDetails(username):
     if not username:
         username = request.userNameFromToken
     else:
@@ -71,7 +71,53 @@ def getUserDetails():
         return json.dumps({'error': "Server error while checking if username already exists."})
 
 
-@user_api.route("/updateUserDetails", methods=['POST'])
+@user_api.route("/skills", methods=['GET'], defaults={'username': None})
+@user_api.route("/skills/<username>", methods=['GET'])
+@api.AuthorizationAPI.requires_auth
+def getSkills(username):
+    if not username:
+        username = request.userNameFromToken
+    else:
+        username = username.lower()
+
+    try:
+        record = userDB.find_one({'username': username}, {'skills': 1})
+        if record is None:
+            return json.dumps({'error': "No user details found for username: " + username})
+        else:
+            del record['_id']  # don't send document id
+            # del record['password'] #don't send the password
+            print("returned user skills: " + username)
+            return json.dumps(record)
+    except Exception as e:
+        print(e)
+        return json.dumps({'error': "Server error while checking if username already exists."})
+
+
+@user_api.route("/classes", methods=['GET'], defaults={'username': None})
+@user_api.route("/classes/<username>", methods=['GET'])
+@api.AuthorizationAPI.requires_auth
+def getClasses(username):
+    if not username:
+        username = request.userNameFromToken
+    else:
+        username = username.lower()
+
+    try:
+        record = userDB.find_one({'username': username}, {'classes': 1})
+        if record is None:
+            return json.dumps({'error': "No user details found for username: " + username})
+        else:
+            del record['_id']  # don't send document id
+            # del record['password'] #don't send the password
+            print("returned user skills: " + username)
+            return json.dumps(record)
+    except Exception as e:
+        print(e)
+        return json.dumps({'error': "Server error while checking if username already exists."})
+
+
+@user_api.route("", methods=['POST'])
 @api.AuthorizationAPI.requires_auth
 def updateUserDetails():
     content = request.get_json()
@@ -113,7 +159,79 @@ def updateUserDetails():
         return json.dumps({'error': "Server error while trying to find user.", 'code': 999})
 
 
-@user_api.route("/getUserPicture", methods=['GET'])
+@user_api.route("/skills", methods=['POST'])
+@api.AuthorizationAPI.requires_auth
+def updateSkills():
+    content = request.get_json()
+    # print(content)
+
+    if not ('skills' in content):
+        return json.dumps({'error': "'skills' not provided.", 'code': 1})
+
+    if not (isinstance(content['skills'], list)):
+        return json.dumps({'error': "'skills' is not an array.", 'code': 2})
+
+    username = request.userNameFromToken
+
+    try:
+        record = userDB.find_one({'username': username}, {'_id': 1, 'skills': 1})
+        if record is None:
+            return json.dumps({'error': "No user details found for username: " + username})
+        else:
+            result = userDB.update_one(
+                {"username": username},
+                {
+                    "$set": {
+                        "skills": content['skills']
+                    }
+                }
+            )
+            if result.matched_count > 0:
+                return json.dumps({'success': True})
+            else:
+                return json.dumps({'success': False, 'error': 'Updating user data failed for some reason', 'code': 998})
+    except Exception as e:
+        print(e)
+        return json.dumps({'error': "Server error while trying to find user.", 'code': 999})
+
+
+@user_api.route("/classes", methods=['POST'])
+@api.AuthorizationAPI.requires_auth
+def updateClasses():
+    content = request.get_json()
+    # print(content)
+
+    if not ('classes' in content):
+        return json.dumps({'error': "'classes' not provided.", 'code': 1})
+
+    if not (isinstance(content['classes'], list)):
+        return json.dumps({'error': "'classes' is not an array.", 'code': 2})
+
+    username = request.userNameFromToken
+
+    try:
+        record = userDB.find_one({'username': username}, {'_id': 1, 'classes': 1})
+        if record is None:
+            return json.dumps({'error': "No user details found for username: " + username})
+        else:
+            result = userDB.update_one(
+                {"username": username},
+                {
+                    "$set": {
+                        "classes": content['classes']
+                    }
+                }
+            )
+            if result.matched_count > 0:
+                return json.dumps({'success': True})
+            else:
+                return json.dumps({'success': False, 'error': 'Updating user data failed for some reason', 'code': 998})
+    except Exception as e:
+        print(e)
+        return json.dumps({'error': "Server error while trying to find user.", 'code': 999})
+
+
+@user_api.route("/profilePicture", methods=['GET'])
 @api.AuthorizationAPI.requires_auth
 def getUserPicture():
     username = request.args.get('username')
@@ -137,7 +255,7 @@ def getUserPicture():
         return json.dumps({'error': "Server error while fetching profile picture", 'code': 1})
 
 
-@user_api.route("/updateUserPicture", methods=['POST'])
+@user_api.route("/profilePicture", methods=['POST'])
 @api.AuthorizationAPI.requires_auth
 def updateUserPicture():
     username = request.userNameFromToken
