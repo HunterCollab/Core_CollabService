@@ -1,15 +1,23 @@
 from flask import Blueprint, request
 import api.AuthorizationAPI
 from services.DBConn import db
-from datetime import datetime  # Imported datetime to do the basic date functions.
+
+from datetime import datetime # Imported datetime to do the basic date functions.
 from bson import json_util  # Trying a PyMongo serializer
+from bson.objectid import ObjectId
 import json
+import ast
 from pymongo import MongoClient
 
 client = MongoClient('mongodb://localhost:27017')
 
 collab_api = Blueprint('collab_api', __name__)
 collabDB = db.collabs
+
+
+def collabRecAlgo(): # Algorithm to determine user recommended collabs. Takes user skills/classes and compares them
+    # to all collabs
+    pass
 
 
 class SetEncoder(json.JSONEncoder):
@@ -27,23 +35,21 @@ def create_collab():
         """
 
     data = request.get_json()
-    print(data)
     try:
-        collabowner = request.userNameFromToken  # By default, the owner of the collaboration is the submitting user.
-        collabid = 0  # Should be a unique ID for each entry
-        collabsize = data['size']  # # Maximum size of the collaboration group. Should be more than 1.
-        collabmembers = [request.userNameFromToken]  # Current members of the collaboration. Owner is member by default.
-        # Number of members cannot exceed size.
-        collabdate = datetime.now()  # Post date for the collaboration. Need to decide
-        # format.
+        collabowner = request.userNameFromToken # By default, the owner of the collaboration is the submitting user.
+        collabsize = data['size'] #  # Maximum size of the collaboration group. Should be more than 1.
+        collabmembers = [request.userNameFromToken] # Current members of the collaboration. Owner is member by default.
+            # Number of members cannot exceed size.
+        collabdate = datetime.now() # Post date for the collaboration. Need to decide
+            # format.
         # collabduration = # Duration of the collaboration. Probably a datetime.
-        # collabexpiration = # Expiration time for the collaboration. Probably a datetime.
-        collabstatus = True  # Bool. True is open, false is closed. Closed collaborations do not expire. Used for searches.
-        collabtitle = data['title']  # Title of the collaboration. Sanitize.
-        collabdescription = data['description']  # Description of the collaboration. Sanitize.
-        collabclasses = data['classes']  # List of classes wanted. By default, empty.
-        collabskills = data['skills']  # List of skills wanted. By default, empty.
-        collabapplicants = []  # Pending applicants to the collaboration. By default, empty.
+        collabloc = data['location']
+        collabstatus = True # Bool. True is open, false is closed. Closed collaborations do not expire. Used for searches.
+        collabtitle = data['title'] # Title of the collaboration. Sanitize.
+        collabdescription = data['description'] # Description of the collaboration. Sanitize.
+        collabclasses = data['classes'] # List of classes wanted. By default, empty.
+        collabskills = data['skills'] # List of skills wanted. By default, empty.
+        collabapplicants = [] # Pending applicants to the collaboration. By default, empty.
 
         # There probably should be a way to find out if there's a duplicate collaboration.
         # If a collaboration has no members, it is deleted?
@@ -52,20 +58,20 @@ def create_collab():
         # Do we need the ability to have collaborations be closed and invite only?
 
         try:
-            newcollab = {  # Make a list with all the collaboration parameters.
-                "id": collabid,
-                'owner': collabowner,
-                'size': collabsize,
-                'members': collabmembers,
-                'date': collabdate,
-                'duration': "",
-                'expiration': "",
-                'status': True,
-                'title': collabtitle,
-                'description': collabdescription,
-                'classes': collabclasses,
-                'skills': collabskills,
-                'applicants': collabapplicants
+            newcollab = { # Make a list with all the collaboration parameters.
+                #"id" : collabid, # In theory, mongodb is already creating this for us
+                'owner' : collabowner,
+                'size' : collabsize,
+                'members' : collabmembers,
+                'date' : collabdate,
+                'duration' : "",
+                'location' : collabloc,
+                'status' : True,
+                'title' : collabtitle,
+                'description' : collabdescription,
+                'classes' : collabclasses,
+                'skills' : collabskills,
+                'applicants' : collabapplicants
             }
 
             result = collabDB.insert_one(newcollab)  # Upload that list to the server.
@@ -112,9 +118,9 @@ def get_collab():
 
 @collab_api.route("/getAllCollabs", methods=['GET'])
 @api.AuthorizationAPI.requires_auth
-def get_allcollab():
+def get_all_collabs():
     '''
-        Return all collaborations ever
+        Return all active collaborations
         '''
     try:
         record = collabDB.find()
@@ -127,15 +133,144 @@ def get_allcollab():
 
     except Exception as e:
         print(e)
-        return json.dumps({'error': "Getting all collabs.", 'code': 70})
+        return json.dumps({'error': "Getting all collabs.", 'code' : 70})
 
-
-# Need a delete collab function
-@collab_api.route("/getAllCollabs", methods=['DELETE'])
+@collab_api.route("/getAllActiveCollabs", methods = ['GET'])
 @api.AuthorizationAPI.requires_auth
-def delete_collab(collabid):  # Take teh collaboration ID and
-    pass
+def get_all_active_collabs():
+    '''
+        Return all active collaborations
+        '''
+    try:
+        record = collabDB.find()
+        if record is None:
+            return json.dumps({'error': "No collaborations found"})
+        else:
+            print("returned collab details: ")
+            doc_list = list(collabDB.find({ 'status' : True}))
+            return json.dumps(doc_list, default=json_util.default)
+
+    except Exception as e:
+        print(e)
+        return json.dumps({'error': "Getting all active collabs.", 'code' : 70})
+
+
+@collab_api.route("/deleteCollab", methods = ['POST'])
+@api.AuthorizationAPI.requires_auth
+def delete_collab() : # Take teh collaboration _ID and
+    # Verify if user is owner first THIS HAS NOT BEEN DONE YET
+    # Make sure collab exists in first try block
+    # Attempt to delete in second try block
+    try:
+        data = request.get_json()
+        # collabowner = request.userNameFromToken # make sure the person trying to delete is the collab owner first
+        # maybe make a server delete function with different credentials later
+        collab_id = data['id'] #  Get the collab id from the Json i guess?
+        # I'm assuming that the app is passing back a JSON object with just the collaboration id in it
+        # nvm the simpler way is to pass it as a string
+        record = collabDB.find({'_id' : ObjectId(collab_id)})
+        # The problem now is that this is not firing the None
+        # It's going to the else statement even when the collab_id is not in the database
+        if record is None:
+            return json.dumps({'error': "No collaborations matched _id: " + collab_id})
+        else:
+            # attempt to delete
+            try:
+                result = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "status": False,
+                        }
+                    }
+                )
+                if result.matched_count > 0:
+                    return json.dumps({'success': True})
+                else:
+                    return json.dumps({'success': False, 'error': 'Updating collab data failed for some reason', 'code': 998})
+            except Exception as e:
+                print(e)
+                return json.dumps({'error': "Error while trying to delete existing doc."})
+    except Exception as e:
+        print(e)
+        return json.dumps({'error': "Server error finding doc to delete"})
 
 # Edit collabs
+@collab_api.route("/deleteCollabForReal", methods = ['DELETE'])
+@api.AuthorizationAPI.requires_auth
+def delete_collab_for_real() : # Take teh collaboration _ID and
+    # Verify if user is owner first THIS HAS NOT BEEN DONE YET
+    # Make sure collab exists in first try block
+    # Attempt to delete in second try block
+    try:
+        data = request.get_json()
+        # collabowner = request.userNameFromToken # make sure the person trying to delete is the collab owner first
+        # maybe make a server delete function with different credentials later
+        collab_id = data['id'] #  Get the collab id from the Json i guess?
+        # I'm assuming that the app is passing back a JSON object with just the collaboration id in it
+        # nvm the simpler way is to pass it as a string
+        record = collabDB.find({'_id' : ObjectId(collab_id)})
+        # The problem now is that this is not firing the None
+        # It's going to the else statement even when the collab_id is not in the database
+        if record is None:
+            return json.dumps({'error': "No collaborations matched _id: " + collab_id})
+        else:
+            # attempt to delete
+            try:
+                collabDB.delete_one({'_id' : ObjectId(collab_id)})
+                print(collab_id + " deleted!")
+                doc_list = list(collabDB.find())
+                return json.dumps(doc_list, default=json_util.default) #Uh, return the remaining list i guess
+            except Exception as e:
+                print(e)
+                return json.dumps({'error': "Error while trying to delete existing doc."})
+    except Exception as e:
+        print(e)
+        return json.dumps({'error': "Server error finding doc to delete"})
 
-# In search API, need a filter collabs
+@collab_api.route("/editCollab", methods = ['POST'])
+@api.AuthorizationAPI.requires_auth
+def edit_collab() :
+    data = request.get_json()
+    # Somehow get the collab id from the json
+    # put a try block here
+    collab_id = data['id'] #id is passed from the APP
+    # Link the collab id to the actual object
+    record = collabDB.find({'_id' : ObjectId(collab_id)}) # Out of all collabs, find the one with the matching id
+    # Im going to assume that, because this is built on updating a previous collab, that there are real default values
+    details = json.dumps(request.get_json())
+    if record is None: # This probably doesn't work right now. ignore
+        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
+    else:
+        # attempt to update
+        try:
+            result = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        # probably need one layer of sanitization to make sure things like titles are not empty
+                        "$set": {
+                            "owner" : data['owner'],
+                            "size" : data['size'],
+                            "members" : data['members'],
+                            "data" : data['date'],
+                            "duration" : data['duration'],
+                            "location" : data['location'],
+                            "status" : data['status'],
+                            "title" : data['title'], # Cannot be empty, but I think front end will sanitize this
+                            "description" : data['description'],
+                            "classes" : data['classes'],
+                            "skills" : data['skills'],
+                            "applicants" : data['applicants']
+                        }
+                    }
+                )
+            if result.modified_count > 0:
+                return json.dumps({'success': True})
+            else:
+                return json.dumps(
+                    {'success': False, 'error': 'Updating collab data failed for some reason', 'code': 998})
+        except Exception as e:
+            print(e)
+            return json.dumps({'error': "Error while trying to update existing doc."})
+
+# In search API, need a filter collabs changed to check
