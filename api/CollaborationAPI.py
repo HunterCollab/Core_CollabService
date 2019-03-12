@@ -1,10 +1,9 @@
-
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 import api.AuthorizationAPI
 from services.DBConn import db
-from pprint import pprint
+
 from datetime import datetime # Imported datetime to do the basic date functions.
-from bson import json_util # Trying a pymongo serializer
+from bson import json_util  # Trying a PyMongo serializer
 from bson.objectid import ObjectId
 import json
 import ast
@@ -15,9 +14,11 @@ client = MongoClient('mongodb://localhost:27017')
 collab_api = Blueprint('collab_api', __name__)
 collabDB = db.collabs
 
+
 def collabRecAlgo(): # Algorithm to determine user recommended collabs. Takes user skills/classes and compares them
     # to all collabs
     pass
+
 
 class SetEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -25,8 +26,9 @@ class SetEncoder(json.JSONEncoder):
             return list(obj)
         return json.JSONEncoder.default(self, obj)
 
-@collab_api.route("/createCollab", methods = ['POST']) # Create collaboration, post method
-@api.AuthorizationAPI.requires_auth # Requires authentication beforehand
+
+@collab_api.route("/createCollab", methods=['POST'])  # Create collaboration, post method
+@api.AuthorizationAPI.requires_auth  # Requires authentication beforehand
 def create_collab():
     """"
         Function to create and upload new collaboration details
@@ -72,15 +74,13 @@ def create_collab():
                 'applicants' : collabapplicants
             }
 
-            result = collabDB.insert_one(newcollab) # Upload that list to the server.
+            result = collabDB.insert_one(newcollab)  # Upload that list to the server.
 
-            if (result.inserted_id):
+            if result.inserted_id:
                 print("New Collaboration: '" + collabtitle + "' created.")
-                return json.dumps({ 'success' : True})
-
+                return json.dumps({'success': True})
             else:
-                return json.dumps({ 'error' : "Failed to upload new collaboration to database", 'code': 64})
-
+                return json.dumps({'error': "Failed to upload new collaboration to database", 'code': 64})
 
         except Exception as e:
             print(e)
@@ -90,7 +90,8 @@ def create_collab():
         print(e)
         return json.dumps({'error': "Server error while making new collab.", 'code': 66})
 
-@collab_api.route("/getCollabDetails", methods = ['GET'])
+
+@collab_api.route("/getCollabDetails", methods=['GET'])
 @api.AuthorizationAPI.requires_auth
 def get_collab():
     """
@@ -103,7 +104,7 @@ def get_collab():
         username = username.lower()
 
     try:
-        record = collabDB.find({ 'members': { '$all': [ username ] } })
+        record = collabDB.find({'members': {'$all': [username]}})
         if record is None:
             return json.dumps({'error': "No collaborations found for username: " + username})
         else:
@@ -114,7 +115,8 @@ def get_collab():
         print(e)
         return json.dumps({'error': "Server error while checking user collaborations."})
 
-@collab_api.route("/getAllCollabs", methods = ['GET'])
+
+@collab_api.route("/getAllCollabs", methods=['GET'])
 @api.AuthorizationAPI.requires_auth
 def get_all_collabs():
     '''
@@ -151,6 +153,7 @@ def get_all_active_collabs():
     except Exception as e:
         print(e)
         return json.dumps({'error': "Getting all active collabs.", 'code' : 70})
+
 
 @collab_api.route("/deleteCollab", methods = ['POST'])
 @api.AuthorizationAPI.requires_auth
@@ -271,5 +274,3 @@ def edit_collab() :
             return json.dumps({'error': "Error while trying to update existing doc."})
 
 # In search API, need a filter collabs changed to check
-
-# Recommend collabs
