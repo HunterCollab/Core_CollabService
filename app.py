@@ -4,8 +4,10 @@ from api.AuthorizationAPI import auth_api
 from api.UserAPI import user_api
 from api.CollaborationAPI import collab_api
 from api.SearchAPI import search_api
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 app.register_blueprint(user_api, url_prefix='/user')
 app.register_blueprint(auth_api, url_prefix='/auth')
 app.register_blueprint(collab_api, url_prefix='/collab')
