@@ -33,7 +33,7 @@ def createUser():
     try:
         record = userDB.find_one({'username': username}, {'_id': 1})
         if record is None:
-            user = {'username': username, 'password': password, 'github': '', 'linkedin': '', 'skills': [],
+            user = {'username': username, 'password': password, 'name': '', 'github': '', 'linkedin': '', 'skills': [],
                     'classes': [], 'profilePicture': None}
             result = userDB.insert_one(user)
             if result.inserted_id:
@@ -59,7 +59,7 @@ def getUserDetails(username):
         username = username.lower()
 
     try:
-        record = userDB.find_one({'username': username}, {'username': 1, 'github': 1, 'linkedin': 1, 'skills': 1, 'classes': 1})
+        record = userDB.find_one({'username': username}, {'username': 1, 'name': 1, 'github': 1, 'linkedin': 1, 'skills': 1, 'classes': 1})
         if record is None:
             return json.dumps({'error': "No user details found for username: " + username})
         else:
@@ -122,43 +122,60 @@ def getClasses(username):
 @api.AuthorizationAPI.requires_auth
 def updateUserDetails():
     content = request.get_json()
+    username = request.userNameFromToken
     # print(content)
 
-    if not ('github' in content and 'linkedin' in content and 'skills' in content and 'classes' in content):
-        return json.dumps({'error': "The required four variables were not provided.", 'code': 1})
-
-    if not (isinstance(content['skills'], list) and isinstance(content['classes'], list)):
-        return json.dumps({'error': "'skills' and 'classes' are not arrays.", 'code': 2})
-
-    if not (isinstance(content['github'], str) and isinstance(content['linkedin'], str)):
-        return json.dumps({'error': "'github' and 'linkedin' are not strings", 'code': 3})
-
-    username = request.userNameFromToken
-
-    try:
-        record = userDB.find_one({'username': username}, {'_id': 1, 'github': 1, 'linkedin': 1, 'skills': 1, 'classes': 1})
-        if record is None:
-            return json.dumps({'error': "No user details found for username: " + username})
-        else:
-            result = userDB.update_one(
-                {"username": username},
-                {
-                    "$set": {
-                        "github": content['github'],
-                        "linkedin": content['linkedin'],
-                        "skills": content['skills'],
-                        "classes": content['classes']
-                    }
+    if 'name' in content and isinstance(content['name'], str):
+        res = userDB.update_one(
+            {"username": username},
+            {
+                "$set": {
+                    "name": content['name'],
                 }
-            )
-            if result.matched_count > 0:
-                return json.dumps({'success': True})
-            else:
-                return json.dumps({'success': False, 'error': 'Updating user data failed for some reason', 'code': 998})
-    except Exception as e:
-        print(e)
-        return json.dumps({'error': "Server error while trying to find user.", 'code': 999})
+            }
+        )
 
+    if 'github' in content and isinstance(content['github'], str):
+        res = userDB.update_one(
+            {"username": username},
+            {
+                "$set": {
+                    "github": content['github'],
+                }
+            }
+        )
+
+    if 'linkedin' in content and isinstance(content['linkedin'], str):
+        res = userDB.update_one(
+            {"username": username},
+            {
+                "$set": {
+                    "linkedin": content['linkedin'],
+                }
+            }
+        )
+
+    if 'skills' in content and isinstance(content['skills'], list):
+        res = userDB.update_one(
+            {"username": username},
+            {
+                "$set": {
+                    "skills": content['skills'],
+                }
+            }
+        )
+
+    if 'classes' in content and isinstance(content['classes'], list):
+        res = userDB.update_one(
+            {"username": username},
+            {
+                "$set": {
+                    "classes": content['classes'],
+                }
+            }
+        )
+
+    return json.dumps({'success': True})
 
 @user_api.route("/skills", methods=['POST'])
 @api.AuthorizationAPI.requires_auth
