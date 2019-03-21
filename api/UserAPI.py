@@ -38,7 +38,8 @@ def createUser():
             result = userDB.insert_one(user)
             if result.inserted_id:
                 print("created new user: " + username)
-                return json.dumps({'success': True})
+                authtoken = api.AuthorizationAPI.encode_auth_token(username).decode("utf-8")
+                return json.dumps({'success': True, 'token': authtoken})
             else:
                 return json.dumps({'error': "Server error while creating new user.", 'code': 7})
         else:
