@@ -7,17 +7,12 @@ from datetime import datetime # Imported datetime to do the basic date functions
 from bson import json_util # Trying a pymongo serializer
 from bson.objectid import ObjectId
 import json
-import ast
 from pymongo import MongoClient
 
 client = MongoClient('mongodb://localhost:27017')
 
 collab_api = Blueprint('collab_api', __name__)
 collabDB = db.collabs
-
-def collabRecAlgo(): # Algorithm to determine user recommended collabs. Takes user skills/classes and compares them
-    # to all collabs
-    pass
 
 class SetEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -133,7 +128,7 @@ def get_all_collabs():
         print(e)
         return json.dumps({'error': "Getting all collabs.", 'code' : 70})
 
-@collab_api.route("/getAllActiveCollabs", methods = ['GET'])
+@collab_api.route("/getActiveCollabs", methods = ['GET'])
 @api.AuthorizationAPI.requires_auth
 def get_all_active_collabs():
     '''
@@ -152,7 +147,7 @@ def get_all_active_collabs():
         print(e)
         return json.dumps({'error': "Getting all active collabs.", 'code' : 70})
 
-@collab_api.route("/deleteCollab", methods = ['POST'])
+@collab_api.route("/setCollabInactive", methods = ['POST'])
 @api.AuthorizationAPI.requires_auth
 def delete_collab() : # Take teh collaboration _ID and
     # Verify if user is owner first THIS HAS NOT BEEN DONE YET
@@ -244,7 +239,7 @@ def edit_collab() :
             result = collabDB.update_one(
                     {"_id": ObjectId(collab_id)},
                     {
-                        # probably need one layer of sanitization to make sure things like titles are not empty
+                        # probably need one layer of sanitation to make sure things like titles are not empty
                         "$set": {
                             "owner" : data['owner'],
                             "size" : data['size'],
@@ -272,4 +267,69 @@ def edit_collab() :
 
 # In search API, need a filter collabs changed to check
 
+@collab_api.route("/joinCollab", methods = ['POST'])
+@api.AuthorizationAPI.requires_auth
+def join_collab() :
+    username = request.args.get('username')
+    if not username:
+        username = request.userNameFromToken
+    else:
+        username = username.lower()
+    data = request.get_json()
+    collab_id = data['id']
+    record = collabDB.find_one({'_id': ObjectId(collab_id)})  # Out of all collabs, find the one with the matching id
+    if record is None:  # This probably doesn't work right now. ignore
+        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
+    else:
+        # Retrieve the id of the collab, find it, and then add the user to it
+        try:
+            result = collabDB.update_one(
+                {
+                    "_id": ObjectId(collab_id)
+                },
+                {"$push" : {
+                    "members" : username
+                }
+                }
+            )
+            if result.modified_count > 0:
+                return json.dumps({'success': True})
+            else:
+                return json.dumps(
+                    {'success': False, 'error': 'Updating collab members failed for some reason', 'code': 998})
+        except Exception as e:
+            print(e)
+            return json.dumps({'error': "Error while trying to update existing doc."})
+
+@collab_api.route("/leaveCollab", methods = ['POST'])
+@api.AuthorizationAPI.requires_auth
+def leave_collab() :
+    pass
+
+
+
+
+
+
 # Recommend collabs
+@collab_api.route("/getRecommendedCollabs", methods = ['GET'])
+@api.AuthorizationAPI.requires_auth
+def recommend_collabs() :
+    data = request.get_json() # This includes the class and skills arrays
+    # Alternatively, can figure out user from username and then retrieve skills and classes
+    classes = data['classes']
+    skills = data['skills']
+    collabRecAlgo(classes, skills)
+
+    pass
+
+def collabRecAlgo(classes, skills): # Algorithm to determine user recommended collabs. Takes user skills/classes and compares them
+    # to all collabs
+    # Gets a score based on matches
+    # Add the scores together to make a priority queue
+    # 
+    pass
+
+# Get user classes and skills from JSON
+# parse and compare with all active collabs
+# put into sorted array and output at random from the first few
