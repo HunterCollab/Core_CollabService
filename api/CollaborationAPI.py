@@ -1,9 +1,9 @@
-
-from flask import Blueprint, request, jsonify
 from flask import Blueprint, request
 import api.AuthorizationAPI
 from services.DBConn import db
+
 from datetime import datetime # Imported datetime to do the basic date functions.
+from bson import json_util  # Trying a PyMongo serializer
 from bson.objectid import ObjectId
 import json
 from pymongo import MongoClient
@@ -28,6 +28,9 @@ class SetEncoder(json.JSONEncoder):
             return list(obj)
         return json.JSONEncoder.default(self, obj)
 
+
+@collab_api.route("/createCollab", methods=['POST'])  # Create collaboration, post method
+@api.AuthorizationAPI.requires_auth  # Requires authentication beforehand
 def create_collab():
     """"
         Function to create and upload new collaboration details
@@ -73,9 +76,13 @@ def create_collab():
                 'applicants' : collabapplicants
             }
 
+            result = collabDB.insert_one(newcollab)  # Upload that list to the server.
 
+            if result.inserted_id:
                 print("New Collaboration: '" + collabtitle + "' created.")
+                return json.dumps({'success': True})
             else:
+                return json.dumps({'error': "Failed to upload new collaboration to database", 'code': 64})
 
         except Exception as e:
             print(e)
@@ -85,6 +92,8 @@ def create_collab():
         print(e)
         return json.dumps({'error': "Server error while making new collab.", 'code': 66})
 
+
+@collab_api.route("/getCollabDetails", methods=['GET'])
 @api.AuthorizationAPI.requires_auth
 def get_collab():
     """
@@ -97,6 +106,7 @@ def get_collab():
         username = username.lower()
 
     try:
+        record = collabDB.find({'members': {'$all': [username]}})
         if record is None:
             return json.dumps({'error': "No collaborations found for username: " + username})
         else:
@@ -107,6 +117,8 @@ def get_collab():
         print(e)
         return json.dumps({'error': "Server error while checking user collaborations."})
 
+
+@collab_api.route("/getAllCollabs", methods=['GET'])
 @api.AuthorizationAPI.requires_auth
 def get_all_collabs():
     '''
@@ -335,3 +347,6 @@ def collabRecAlgo(classes, skills): # Algorithm to determine user recommended co
 
 # Get user classes and skills from JSON
 # parse and compare with all active collabs
+# put into sorted array and output at random from the first few
+=======
+>>>>>>> abcb1e7273a8135b8d26a737ef9395c006fcc3c4
