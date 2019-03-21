@@ -1,7 +1,6 @@
 from flask import Blueprint, request
 import api.AuthorizationAPI
 from services.DBConn import db
-
 from datetime import datetime # Imported datetime to do the basic date functions.
 from bson import json_util  # Trying a PyMongo serializer
 from bson.objectid import ObjectId
@@ -13,15 +12,10 @@ client = MongoClient('mongodb://localhost:27017')
 collab_api = Blueprint('collab_api', __name__)
 collabDB = db.collabs
 
-<<<<<<< HEAD
-=======
-
 def collabRecAlgo(): # Algorithm to determine user recommended collabs. Takes user skills/classes and compares them
     # to all collabs
     pass
 
-
->>>>>>> abcb1e7273a8135b8d26a737ef9395c006fcc3c4
 class SetEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, set):
@@ -156,12 +150,7 @@ def get_all_active_collabs():
         print(e)
         return json.dumps({'error': "Getting all active collabs.", 'code' : 70})
 
-<<<<<<< HEAD
-@collab_api.route("/setCollabInactive", methods = ['POST'])
-=======
-
 @collab_api.route("/deleteCollab", methods = ['POST'])
->>>>>>> abcb1e7273a8135b8d26a737ef9395c006fcc3c4
 @api.AuthorizationAPI.requires_auth
 def delete_collab() : # Take teh collaboration _ID and
     # Verify if user is owner first THIS HAS NOT BEEN DONE YET
@@ -280,7 +269,6 @@ def edit_collab() :
             return json.dumps({'error': "Error while trying to update existing doc."})
 
 # In search API, need a filter collabs changed to check
-<<<<<<< HEAD
 
 @collab_api.route("/joinCollab", methods = ['POST'])
 @api.AuthorizationAPI.requires_auth
@@ -319,8 +307,36 @@ def join_collab() :
 @collab_api.route("/leaveCollab", methods = ['POST'])
 @api.AuthorizationAPI.requires_auth
 def leave_collab() :
-    pass
-
+    username = request.args.get('username')
+    if not username:
+        username = request.userNameFromToken
+    else:
+        username = username.lower()
+    data = request.get_json()
+    collab_id = data['id']
+    record = collabDB.find_one({'_id': ObjectId(collab_id)})  # Out of all collabs, find the one with the matching id
+    if record is None:  # This probably doesn't work right now. ignore
+        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
+    else:
+        # Retrieve the id of the collab, find it, and then add the user to it
+        try:
+            result = collabDB.update_one(
+                {
+                    "_id": ObjectId(collab_id)
+                },
+                {"$pull" : {
+                    "members" : username
+                }
+                }
+            )
+            if result.modified_count > 0:
+                return json.dumps({'success': True})
+            else:
+                return json.dumps(
+                    {'success': False, 'error': 'Removing collab members failed for some reason', 'code': 998})
+        except Exception as e:
+            print(e)
+            return json.dumps({'error': "Error while trying to update existing doc."})
 
 
 
@@ -348,5 +364,3 @@ def collabRecAlgo(classes, skills): # Algorithm to determine user recommended co
 # Get user classes and skills from JSON
 # parse and compare with all active collabs
 # put into sorted array and output at random from the first few
-=======
->>>>>>> abcb1e7273a8135b8d26a737ef9395c006fcc3c4
