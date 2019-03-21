@@ -13,12 +13,10 @@ app.register_blueprint(auth_api, url_prefix='/auth')
 app.register_blueprint(collab_api, url_prefix='/collab')
 app.register_blueprint(search_api, url_prefix='/search')
 
-
-@app.route("/", methods=['GET'])
+@app.route("/")
 def helloWorld():
-    return "Welcome to the Hunter Collab API. There's nothing to see here."
-
+  return "Welcome to the Hunter Collab API. There's nothing to see here."
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, threaded=True)
+	port = int(os.environ.get("PORT", 5000))
+	app.run(host="0.0.0.0", port=port, threaded=True)
