@@ -33,7 +33,7 @@ def createUser():
     try:
         record = userDB.find_one({'username': username}, {'_id': 1})
         if record is None:
-            user = {'username': username, 'password': password, 'name': '', 'github': '', 'linkedin': '', 'skills': [],
+            user = {'username': username, 'password': password, 'name': username, 'github': '', 'linkedin': '', 'skills': [],
                     'classes': [], 'profilePicture': None}
             result = userDB.insert_one(user)
             if result.inserted_id:
