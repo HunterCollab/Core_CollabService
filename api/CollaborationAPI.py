@@ -247,7 +247,7 @@ def edit_collab() :
                             "owner" : data['owner'],
                             "size" : data['size'],
                             "members" : data['members'],
-                            "data" : data['date'],
+                            "date" : data['date'],
                             "duration" : data['duration'],
                             "location" : data['location'],
                             "status" : data['status'],
