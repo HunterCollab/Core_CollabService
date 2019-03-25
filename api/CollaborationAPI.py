@@ -59,7 +59,7 @@ def create_collab():
                 'size' : collabsize,
                 'members' : collabmembers,
                 'date' : collabdate,
-                'duration' : "",
+                'duration' : collabduration,
                 'location' : collabloc,
                 'status' : True,
                 'title' : collabtitle,
