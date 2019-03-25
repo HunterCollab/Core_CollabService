@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 import api.AuthorizationAPI
 from services.DBConn import db
-from datetime import datetime # Imported datetime to do the basic date functions.
+import time # Imported time to do the basic date functions.
 from bson import json_util  # Trying a PyMongo serializer
 from bson.objectid import ObjectId
 import json
@@ -36,9 +36,8 @@ def create_collab():
         collabsize = data['size'] #  # Maximum size of the collaboration group. Should be more than 1.
         collabmembers = [request.userNameFromToken] # Current members of the collaboration. Owner is member by default.
             # Number of members cannot exceed size.
-        collabdate = datetime.now() # Post date for the collaboration. Need to decide
-            # format.
-        # collabduration = # Duration of the collaboration. Probably a datetime.
+        collabdate = int(round(time.time())) # Post date for the collaboration. In seconds
+        collabduration = collabdate + 259200
         collabloc = data['location']
         collabstatus = True # Bool. True is open, false is closed. Closed collaborations do not expire. Used for searches.
         collabtitle = data['title'] # Title of the collaboration. Sanitize.
