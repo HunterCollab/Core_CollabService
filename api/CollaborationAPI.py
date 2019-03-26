@@ -36,8 +36,8 @@ def create_collab():
         collabsize = data['size'] #  # Maximum size of the collaboration group. Should be more than 1.
         collabmembers = [request.userNameFromToken] # Current members of the collaboration. Owner is member by default.
             # Number of members cannot exceed size.
-        collabdate = int(round(time.time())) # Post date for the collaboration. In seconds
-        collabduration = collabdate + 259200
+        collabdate = data['date'] # Post date for the collaboration. In milliseconds
+        collabduration = collabdate + 259200000
         collabloc = data['location']
         collabstatus = True # Bool. True is open, false is closed. Closed collaborations do not expire. Used for searches.
         collabtitle = data['title'] # Title of the collaboration. Sanitize.
