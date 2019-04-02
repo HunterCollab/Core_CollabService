@@ -353,8 +353,7 @@ def edit_collab() :
             if record.modified_count > 0:
                 return json.dumps({'success': True})
             else:
-                return json.dumps(
-                    {'success': False, 'error': 'Updating collab data failed for some reason', 'code': 998})
+                return json.dumps({'error': "Updating collabs failed})
         except Exception as e:
             print(e)
             return json.dumps({'error': "Error while trying to update existing doc."})
@@ -396,8 +395,7 @@ def join_collab() :
                 if result.modified_count > 0:
                     return json.dumps({'success': True})
                 else:
-                    return json.dumps(
-                        {'success': False, 'error': 'Updating collab members failed for some reason', 'code': 998})
+                    json.dumps({'error': "joining collabs failed})
             except Exception as e:
                 print(e)
                 return json.dumps({'error': "Error while trying to update existing doc."})
