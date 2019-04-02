@@ -232,7 +232,6 @@ def edit_collab() :
     # Link the collab id to the actual object
     record = collabDB.find({'_id' : ObjectId(collab_id)}) # Out of all collabs, find the one with the matching id
     # Im going to assume that, because this is built on updating a previous collab, that there are real default values
-    details = json.dumps(request.get_json())
     if record is None: # This probably doesn't work right now. ignore
         return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
     else:
@@ -282,48 +281,33 @@ def join_collab() :
     record = collabDB.find_one(
             {'_id': ObjectId(collab_id)})
     # okay so this works. now maybe these should separate.
-    if record is None:  # This probably doesn't work right now. ignore
+    if record is None:
         return json.dumps({'error': "No collaborations matched _id: " + collab_id})
-    record = collabDB.find_one({
-        "$and" : [
-            {'_id': ObjectId(collab_id)},
-            {'members': {"$nin": [username]}}
-        ]
-    })
-    if record is None:
+    # Now we have the collab in "record". This is a dict
+    if username in record["members"]: # If the username is in the members list, end
         return json.dumps({'error': "Username is already member of _id: " + collab_id})
-    record = collabDB.find_one({
-        "$and": [
-            {'_id': ObjectId(collab_id)},
-            {'members': {"$nin": [username]}},
-            {'members': {"$size": {"$lt": 'size'}}}
-        ]
-    })
-    if record is None:
-        return json.dumps({'error': "Members of collab full _id: " + collab_id})
     else:
-        # Retrieve the id of the collab, find it, and then add the user to it
-        # if the user is in the members list already, break.
-
-        # Okay, so now try to add the member to the id, checking for size and duplicate
-        try:
-            result = collabDB.update_one(
-                {
-                    "_id": ObjectId(collab_id),
-                },
-                {"$push" : {
-                    "members" : username
-                }
-                }
-            )
-            if result.modified_count > 0:
-                return json.dumps({'success': True})
-            else:
-                return json.dumps(
-                    {'success': False, 'error': 'Updating collab members failed for some reason', 'code': 998})
-        except Exception as e:
-            print(e)
-            return json.dumps({'error': "Error while trying to update existing doc."})
+        if len(record["members"]) >= record["size"]:
+            return json.dumps({'error': "Members of collab full _id: " + collab_id})
+        else:
+            try:
+                result = collabDB.update_one(
+                    {
+                        "_id": ObjectId(collab_id),
+                    },
+                    {"$push" : {
+                        "members" : username
+                    }
+                    }
+                )
+                if result.modified_count > 0:
+                    return json.dumps({'success': True})
+                else:
+                    return json.dumps(
+                        {'success': False, 'error': 'Updating collab members failed for some reason', 'code': 998})
+            except Exception as e:
+                print(e)
+                return json.dumps({'error': "Error while trying to update existing doc."})
 
 @collab_api.route("/leaveCollab", methods = ['POST'])
 @api.AuthorizationAPI.requires_auth
@@ -342,81 +326,76 @@ def leave_collab() :
     if record is None:
         return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
     # Make sure that collaboration has the user as a member
-    record = collabDB.find_one(
-        {"$and": [
-            {"_id": ObjectId(collab_id)},
-            {'members': {"$in": [username]}}
-        ]}
-    )
-    if record is None: # If there is no collaboration
-        return json.dumps({'error': "No collaborations with matched _id: " + collab_id + " with user as member"})
-    else:
-        # Retrieve the id of the collab, find it, and then remove the user from it
+    if username not in record["members"]:  # If the user is not in members array, end
+        return json.dumps({'error': "Username is not member of _id: " + collab_id})
+    else: # So user is member of collab
         # Also need to change owner
-        try:
-            # Remove the user from member array
-            result = collabDB.update_one(
-                {
-                    "_id": ObjectId(collab_id)
-                },
-                {"$pull" : {
-                    "members" : username
-                }
-                }
-            )
-            if result.modified_count > 0: # On success,
-                # Check if the collaboration member array is now empty
-                record = collabDB.find_one(
-                    {"$and": [
-                        {"_id": ObjectId(collab_id)},
-                        {'members': {"$size": 0}}
-                    ]
-                    })
-                if record is None: # If the member array is not empty... (and the collab itself is not empty)
-                    # Check if the left user was the owner
-                    record = collabDB.find_one(
-                        {"$and": [
-                            {"_id": ObjectId(collab_id)},
-                            {"owner": username}
-                        ]})
-                    if record is None: # The member array is not empty and the user was not the owner. Task finished
+        if record["owner"] != username: # If owner is not username, size > 1. Just remove the user.
+            try:
+                # Remove the user from member array
+                result = collabDB.update_one(
+                    {
+                        "_id": ObjectId(collab_id)
+                    },
+                    {"$pull" : {
+                        "members" : username
+                    }
+                    }
+                )
+                if result.modified_count > 0: # On success,
+                    return json.dumps({'success': True})
+                else:
+                    return json.dumps({'error': "Error while trying to leave collab."})
+            except Exception as e:
+                print(e)
+                return json.dumps({'error': "Error while trying to leave collab."})
+        else: # If the owner is the user, then problems.
+            # Two cases, owner must shift, or collab must be archived
+            # Case 1, ownership shifts to next person
+            if len(record["members"]) <= 1: # If the owner was the only person in the collab
+                try:
+                    result = collabDB.update_one(
+                        {
+                            "_id": ObjectId(collab_id)
+                        },
+                            {"$pull": {
+                                "members": username
+                            },
+                            "$set": {
+                                "owner": "",
+                                "status": False
+                            }
+                            }
+                    )
+                    if result.modified_count > 0:  # On success,
                         return json.dumps({'success': True})
-                    else: # If the user was the owner...
-                        # Set the owner to the next member
-                        record =  collabDB.update_one(
-                            {"$and": [
-                            {"_id": ObjectId(collab_id)},
-                            {"owner": username}
-                            ]},
-                            {"$set": {
-                                "owner" : {"arrayElemAt" : [1]} # New owner is the member at array position 1
-                            }}
-                        )
-                        if record.modified_count > 0:
-                            return json.dumps({'success': "Left Collab and updated new owner"})
-                        else:
-                            return json.dumps(
-                                {'success': False, 'error': 'Updating collab members failed for some reason',
-                                 'code': 998})
-                else: # If the member array was empty...
-                    # Set status to false and update the owner to empty
-                    collabDB.update_one(
-                        {"$and": [
-                            {"_id": ObjectId(collab_id)},
-                            {'members': {"$size": 0}}
-                        ]
+                    else:
+                        return json.dumps({'error': "Error while trying to leave collab."})
+                except Exception as e:
+                    print(e)
+                    return json.dumps({'error': "Error while trying to leave collab."})
+            else: # If the user was not only member, set user to new members array
+                newmembers = record["members"].remove(username) # remove user from members array
+                newowner = record["members"][0]  # Set new owner to be first element of members array
+                try:
+                    result = collabDB.update_one(
+                        {
+                            "_id": ObjectId(collab_id)
                         },
                         {"$set": {
-                            "owner": "",
-                            "status": False
-                        }})
-                    return json.dumps({'success': "Collaboration has no members, so it was archived"})
-            else:
-                return json.dumps(
-                    {'success': False, 'error': 'Removing collab members failed for some reason', 'code': 998})
-        except Exception as e:
-            print(e)
-            return json.dumps({'error': "Error while trying to update existing doc."})
+                            "owner": newowner,
+                            "members": newmembers
+                        }
+                        }
+                    )
+                    if result.modified_count > 0:  # On success,
+                        return json.dumps({'success': True})
+                    else:
+                        return json.dumps({'error': "Error while trying to leave collab."})
+                except Exception as e:
+                    print(e)
+                    return json.dumps({'error': "Error while trying to leave collab."})
+
 
 
 # Recommend collabs
