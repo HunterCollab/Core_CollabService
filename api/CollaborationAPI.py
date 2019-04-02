@@ -337,21 +337,24 @@ def leave_collab() :
     # Get the data from the JSON body
     data = request.get_json()
     collab_id = data['id']
-    record = collabDB.find_one({'_id': ObjectId(collab_id)})  # Out of all collabs, find the one with the matching id
-    if record is None:  # This probably doesn't work right now. ignore
+    # Make sure the collaboration with the matching _id exists
+    record = collabDB.find_one({'_id': ObjectId(collab_id)})
+    if record is None:
         return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
+    # Make sure that collaboration has the user as a member
     record = collabDB.find_one(
         {"$and": [
             {"_id": ObjectId(collab_id)},
             {'members': {"$in": [username]}}
         ]}
     )
-    if record is None:
+    if record is None: # If there is no collaboration
         return json.dumps({'error': "No collaborations with matched _id: " + collab_id + " with user as member"})
     else:
         # Retrieve the id of the collab, find it, and then remove the user from it
         # Also need to change owner
         try:
+            # Remove the user from member array
             result = collabDB.update_one(
                 {
                     "_id": ObjectId(collab_id)
@@ -361,22 +364,24 @@ def leave_collab() :
                 }
                 }
             )
-            if result.modified_count > 0:
+            if result.modified_count > 0: # On success,
+                # Check if the collaboration member array is now empty
                 record = collabDB.find_one(
                     {"$and": [
                         {"_id": ObjectId(collab_id)},
                         {'members': {"$size": 0}}
                     ]
                     })
-                if record is None:
+                if record is None: # If the member array is not empty... (and the collab itself is not empty)
+                    # Check if the left user was the owner
                     record = collabDB.find_one(
                         {"$and": [
                             {"_id": ObjectId(collab_id)},
                             {"owner": username}
                         ]})
-                    if record is None:
+                    if record is None: # The member array is not empty and the user was not the owner. Task finished
                         return json.dumps({'success': True})
-                    else:
+                    else: # If the user was the owner...
                         # Set the owner to the next member
                         record =  collabDB.update_one(
                             {"$and": [
@@ -384,16 +389,17 @@ def leave_collab() :
                             {"owner": username}
                             ]},
                             {"$set": {
-                                "owner" : {"arrayElemAt" : [1]}
+                                "owner" : {"arrayElemAt" : [1]} # New owner is the member at array position 1
                             }}
                         )
-                        if result.modified_count > 0:
+                        if record.modified_count > 0:
                             return json.dumps({'success': "Left Collab and updated new owner"})
                         else:
                             return json.dumps(
                                 {'success': False, 'error': 'Updating collab members failed for some reason',
                                  'code': 998})
-                else:
+                else: # If the member array was empty...
+                    # Set status to false and update the owner to empty
                     collabDB.update_one(
                         {"$and": [
                             {"_id": ObjectId(collab_id)},
@@ -401,6 +407,7 @@ def leave_collab() :
                         ]
                         },
                         {"$set": {
+                            "owner": "",
                             "status": False
                         }})
                     return json.dumps({'success': "Collaboration has no members, so it was archived"})
