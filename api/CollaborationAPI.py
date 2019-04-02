@@ -37,7 +37,7 @@ def create_collab():
         collabmembers = [request.userNameFromToken] # Current members of the collaboration. Owner is member by default.
             # Number of members cannot exceed size.
         collabdate = data['date'] # Post date for the collaboration. In milliseconds
-        collabduration = collabdate + 259200000
+        collabduration = data['duration']
         collabloc = data['location']
         collabstatus = True # Bool. True is open, false is closed. Closed collaborations do not expire. Used for searches.
         collabtitle = data['title'] # Title of the collaboration. Sanitize.
@@ -279,15 +279,37 @@ def join_collab() :
         username = username.lower()
     data = request.get_json()
     collab_id = data['id']
-    record = collabDB.find_one({'_id': ObjectId(collab_id)})  # Out of all collabs, find the one with the matching id
+    record = collabDB.find_one(
+            {'_id': ObjectId(collab_id)})
+    # okay so this works. now maybe these should separate.
     if record is None:  # This probably doesn't work right now. ignore
-        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
+        return json.dumps({'error': "No collaborations matched _id: " + collab_id})
+    record = collabDB.find_one({
+        "$and" : [
+            {'_id': ObjectId(collab_id)},
+            {'members': {"$nin": [username]}}
+        ]
+    })
+    if record is None:
+        return json.dumps({'error': "Username is already member of _id: " + collab_id})
+    record = collabDB.find_one({
+        "$and": [
+            {'_id': ObjectId(collab_id)},
+            {'members': {"$nin": [username]}},
+            {'members': {"$size": {"$lt": 'size'}}}
+        ]
+    })
+    if record is None:
+        return json.dumps({'error': "Members of collab full _id: " + collab_id})
     else:
         # Retrieve the id of the collab, find it, and then add the user to it
+        # if the user is in the members list already, break.
+
+        # Okay, so now try to add the member to the id, checking for size and duplicate
         try:
             result = collabDB.update_one(
                 {
-                    "_id": ObjectId(collab_id)
+                    "_id": ObjectId(collab_id),
                 },
                 {"$push" : {
                     "members" : username
@@ -316,8 +338,17 @@ def leave_collab() :
     record = collabDB.find_one({'_id': ObjectId(collab_id)})  # Out of all collabs, find the one with the matching id
     if record is None:  # This probably doesn't work right now. ignore
         return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
+    record = collabDB.find_one(
+        {"$and": [
+            {"_id": ObjectId(collab_id)},
+            {'members': {"$in": [username]}}
+        ]}
+    )
+    if record is None:
+        return json.dumps({'error': "No collaborations with matched _id: " + collab_id + " with user as member"})
     else:
-        # Retrieve the id of the collab, find it, and then add the user to it
+        # Retrieve the id of the collab, find it, and then remove the user from it
+        # Also need to change owner
         try:
             result = collabDB.update_one(
                 {
@@ -329,7 +360,26 @@ def leave_collab() :
                 }
             )
             if result.modified_count > 0:
-                return json.dumps({'success': True})
+                print("hello0")
+                record = collabDB.find_one(
+                    {"$and": [
+                        {"_id": ObjectId(collab_id)},
+                        {'members': {"$size": 0}}
+                    ]
+                    })
+                if record is None:
+                    return json.dumps({'success': True})
+                else:
+                    collabDB.update_one(
+                        {"$and": [
+                            {"_id": ObjectId(collab_id)},
+                            {'members': {"$size": 0}}
+                        ]
+                        },
+                        {"$set": {
+                            "status": False
+                        }})
+                    return json.dumps({'success': "Collaboration has no members, so it was archived"})
             else:
                 return json.dumps(
                     {'success': False, 'error': 'Removing collab members failed for some reason', 'code': 998})
@@ -363,3 +413,4 @@ def collabRecAlgo(classes, skills): # Algorithm to determine user recommended co
 # Get user classes and skills from JSON
 # parse and compare with all active collabs
 # put into sorted array and output at random from the first few
+
