@@ -13,10 +13,6 @@ client = MongoClient('mongodb://localhost:27017')
 collab_api = Blueprint('collab_api', __name__)
 collabDB = db.collabs
 
-def collabRecAlgo(): # Algorithm to determine user recommended collabs. Takes user skills/classes and compares them
-    # to all collabs
-    pass
-
 class SetEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, set):
