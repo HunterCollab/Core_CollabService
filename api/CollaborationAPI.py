@@ -515,12 +515,20 @@ def recommend_collabs() :
     sorted(scoredict.values(), reverse=True)
     slist = list(scoredict.keys())
     # make a dict with _id and score? then sort by score and return _ids?
-    for i in range(5):
-        # Actually, I need to get teh _id, then pop the dict, then find the id and append it to the list
-        recommended = collabDB.find_one({'_id' : slist[0]})
-        scorelist.append(recommended)
-        del slist[0]
-    return json.dumps(scorelist, default=json_util.default)
+    if len(slist) >= 5:
+        for i in range(5):
+            # Actually, I need to get teh _id, then pop the dict, then find the id and append it to the list
+            recommended = collabDB.find_one({'_id' : slist[0]})
+            scorelist.append(recommended)
+            del slist[0]
+        return json.dumps(scorelist, default=json_util.default)
+    else:
+        for i in range(len(slist)):
+            # Actually, I need to get teh _id, then pop the dict, then find the id and append it to the list
+            recommended = collabDB.find_one({'_id' : slist[0]})
+            scorelist.append(recommended)
+            del slist[0]
+        return json.dumps(scorelist, default=json_util.default) # Should I be worried this can return an empty list?
 
 # Get user classes and skills from JSON
 # parse and compare with all active collabs
