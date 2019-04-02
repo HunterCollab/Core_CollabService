@@ -232,32 +232,129 @@ def edit_collab() :
     # Link the collab id to the actual object
     record = collabDB.find({'_id' : ObjectId(collab_id)}) # Out of all collabs, find the one with the matching id
     # Im going to assume that, because this is built on updating a previous collab, that there are real default values
-    if record is None: # This probably doesn't work right now. ignore
-        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
+    if record is None:
+        return json.dumps({'error': "No collaborations to update matched _id: " + collab_id})
     else:
         # attempt to update
         try:
-            result = collabDB.update_one(
+            if 'owner' in data and isinstance(data['owner'], str):
+                record = collabDB.update_one(
                     {"_id": ObjectId(collab_id)},
                     {
-                        # probably need one layer of sanitation to make sure things like titles are not empty
                         "$set": {
-                            "owner" : data['owner'],
-                            "size" : data['size'],
-                            "members" : data['members'],
-                            "date" : data['date'],
-                            "duration" : data['duration'],
-                            "location" : data['location'],
-                            "status" : data['status'],
-                            "title" : data['title'], # Cannot be empty, but I think front end will sanitize this
-                            "description" : data['description'],
-                            "classes" : data['classes'],
-                            "skills" : data['skills'],
-                            "applicants" : data['applicants']
+                            "owner": data['owner']
+                            # Remember that owners should only be set to people who are also members
                         }
                     }
                 )
-            if result.modified_count > 0:
+            if 'size' in data and isinstance(data['size'], int):
+                record = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "size": data['size']
+                            # Remember that owners should only be set to people who are also members
+                        }
+                    }
+                )
+            if 'members' in data and isinstance(data['members'], list):
+                record = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "members": data['members']
+                        }
+                    }
+                )
+            if 'date' in data and isinstance(data['date'], int):
+                record = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "date": data['size']
+                        }
+                    }
+                )
+            if 'duration' in data and isinstance(data['duration'], int):
+                record = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "duration": data['duration']
+                            # Remember that owners should only be set to people who are also members
+                        }
+                    }
+                )
+            if 'location' in data and isinstance(data['location'], str):
+                record = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "location": data['location']
+                        }
+                    }
+                )
+            if 'status' in data and isinstance(data['status'], bool):
+                record = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "status": data['status']
+                            # Remember that owners should only be set to people who are also members
+                        }
+                    }
+                )
+            if 'title' in data and isinstance(data['title'], str):
+                record = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "title": data['title']
+                            # Remember title should not be empty
+                        }
+                    }
+                )
+            if 'description' in data and isinstance(data['description'], str):
+                record = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "description": data['description']
+                            # Remember that owners should only be set to people who are also members
+                        }
+                    }
+                )
+            if 'classes' in data and isinstance(data['classes'], list):
+                record = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "classes": data['classes']
+                            # Remember that owners should only be set to people who are also members
+                        }
+                    }
+                )
+            if 'skills' in data and isinstance(data['skills'], list):
+                record = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "skills": data['skills']
+                            # Remember that owners should only be set to people who are also members
+                        }
+                    }
+                )
+            if 'applicants' in data and isinstance(data['applicants'], list):
+                record = collabDB.update_one(
+                    {"_id": ObjectId(collab_id)},
+                    {
+                        "$set": {
+                            "applicants": data['applicants']
+                            # Remember that owners should only be set to people who are also members
+                        }
+                    }
+                )
+            if record.modified_count > 0:
                 return json.dumps({'success': True})
             else:
                 return json.dumps(
@@ -395,8 +492,6 @@ def leave_collab() :
                 except Exception as e:
                     print(e)
                     return json.dumps({'error': "Error while trying to leave collab."})
-
-
 
 # Recommend collabs
 @collab_api.route("/getRecommendedCollabs", methods = ['GET'])
