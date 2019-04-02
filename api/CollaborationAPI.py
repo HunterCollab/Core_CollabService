@@ -185,10 +185,12 @@ def delete_collab() : # Take teh collaboration _ID and
         print(e)
         return json.dumps({'error': "Server error finding doc to delete"})
 
+
 # Edit collabs
 @collab_api.route("/deleteCollabForReal", methods = ['DELETE'])
 @api.AuthorizationAPI.requires_auth
-def delete_collab_for_real() : # Take teh collaboration _ID and
+def delete_collab_for_real() : # lol @ delete collab for real. I like the way you name your functions.
+    # Take teh collaboration _ID and
     # Verify if user is owner first THIS HAS NOT BEEN DONE YET
     # Make sure collab exists in first try block
     # Attempt to delete in second try block

@@ -4,6 +4,7 @@ from api.AuthorizationAPI import auth_api
 from api.UserAPI import user_api
 from api.CollaborationAPI import collab_api
 from api.SearchAPI import search_api
+from api.MessagingAPI import messaging_api
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -12,6 +13,7 @@ app.register_blueprint(user_api, url_prefix='/user')
 app.register_blueprint(auth_api, url_prefix='/auth')
 app.register_blueprint(collab_api, url_prefix='/collab')
 app.register_blueprint(search_api, url_prefix='/search')
+app.register_blueprint(messaging_api, url_prefix='/messaging')
 
 
 @app.route("/", methods=['GET'])
