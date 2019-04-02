@@ -353,7 +353,7 @@ def edit_collab() :
             if record.modified_count > 0:
                 return json.dumps({'success': True})
             else:
-                return json.dumps({'error': "Updating collabs failed})
+                return json.dumps({'error': "Updating collabs failed"})
         except Exception as e:
             print(e)
             return json.dumps({'error': "Error while trying to update existing doc."})
@@ -395,7 +395,7 @@ def join_collab() :
                 if result.modified_count > 0:
                     return json.dumps({'success': True})
                 else:
-                    json.dumps({'error': "joining collabs failed})
+                    json.dumps({'error': "joining collabs failed"})
             except Exception as e:
                 print(e)
                 return json.dumps({'error': "Error while trying to update existing doc."})
@@ -475,7 +475,9 @@ def leave_collab() :
                         },
                         {"$set": {
                             "owner": newowner,
-                            "members": newmembers
+                        },
+                        "$pull": {
+                            "members": username
                         }
                         }
                     )
