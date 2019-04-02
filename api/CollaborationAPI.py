@@ -328,11 +328,13 @@ def join_collab() :
 @collab_api.route("/leaveCollab", methods = ['POST'])
 @api.AuthorizationAPI.requires_auth
 def leave_collab() :
+    # Retrieve a username variable from the username token
     username = request.args.get('username')
     if not username:
         username = request.userNameFromToken
     else:
         username = username.lower()
+    # Get the data from the JSON body
     data = request.get_json()
     collab_id = data['id']
     record = collabDB.find_one({'_id': ObjectId(collab_id)})  # Out of all collabs, find the one with the matching id
@@ -360,7 +362,6 @@ def leave_collab() :
                 }
             )
             if result.modified_count > 0:
-                print("hello0")
                 record = collabDB.find_one(
                     {"$and": [
                         {"_id": ObjectId(collab_id)},
@@ -368,7 +369,30 @@ def leave_collab() :
                     ]
                     })
                 if record is None:
-                    return json.dumps({'success': True})
+                    record = collabDB.find_one(
+                        {"$and": [
+                            {"_id": ObjectId(collab_id)},
+                            {"owner": username}
+                        ]})
+                    if record is None:
+                        return json.dumps({'success': True})
+                    else:
+                        # Set the owner to the next member
+                        record =  collabDB.update_one(
+                            {"$and": [
+                            {"_id": ObjectId(collab_id)},
+                            {"owner": username}
+                            ]},
+                            {"$set": {
+                                "owner" : {"arrayElemAt" : [1]}
+                            }}
+                        )
+                        if result.modified_count > 0:
+                            return json.dumps({'success': "Left Collab and updated new owner"})
+                        else:
+                            return json.dumps(
+                                {'success': False, 'error': 'Updating collab members failed for some reason',
+                                 'code': 998})
                 else:
                     collabDB.update_one(
                         {"$and": [
@@ -386,9 +410,6 @@ def leave_collab() :
         except Exception as e:
             print(e)
             return json.dumps({'error': "Error while trying to update existing doc."})
-
-
-
 
 
 # Recommend collabs
