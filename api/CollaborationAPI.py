@@ -6,6 +6,7 @@ from bson import json_util  # Trying a PyMongo serializer
 from bson.objectid import ObjectId
 import json
 from pymongo import MongoClient
+from collections import OrderedDict
 
 client = MongoClient('mongodb://localhost:27017')
 
@@ -54,7 +55,6 @@ def create_collab():
 
         try:
             newcollab = { # Make a list with all the collaboration parameters.
-                #"id" : collabid, # In theory, mongodb is already creating this for us
                 'owner' : collabowner,
                 'size' : collabsize,
                 'members' : collabmembers,
@@ -66,7 +66,7 @@ def create_collab():
                 'description' : collabdescription,
                 'classes' : collabclasses,
                 'skills' : collabskills,
-                'applicants' : collabapplicants
+                'applicants' : collabapplicants,
             }
 
             result = collabDB.insert_one(newcollab)  # Upload that list to the server.
@@ -75,7 +75,7 @@ def create_collab():
                 print("New Collaboration: '" + collabtitle + "' created.")
                 return json.dumps({'success': True})
             else:
-                return json.dumps({'error': "Failed to upload new collaboration to database", 'code': 64})
+                return json.dumps({'error': "Failed to upload new collaboration to database2", 'code': 64})
 
         except Exception as e:
             print(e)
@@ -497,20 +497,38 @@ def leave_collab() :
 @collab_api.route("/getRecommendedCollabs", methods = ['GET'])
 @api.AuthorizationAPI.requires_auth
 def recommend_collabs() :
-    data = request.get_json() # This includes the class and skills arrays
-    # Alternatively, can figure out user from username and then retrieve skills and classes
-    classes = data['classes']
-    skills = data['skills']
-    collabRecAlgo(classes, skills)
+    record = request.get_json()
 
-    pass
-
-def collabRecAlgo(classes, skills): # Algorithm to determine user recommended collabs. Takes user skills/classes and compares them
-    # to all collabs
-    # Gets a score based on matches
-    # Add the scores together to make a priority queue
-    # 
-    pass
+    scoredict = OrderedDict()
+    scorelist = []
+    # iterate through the collabs, match the skills and classes and input to list
+    for doc in collabDB.find({'status': True}):
+        collabscore = 0
+        for elem in record['skills']:
+            if doc['skills'].count(elem): # there is at least one match in skills, increment
+                collabscore + 1
+        for elem in record['classes']:
+            if doc['classes'].count(elem):
+                collabscore + 1
+        scoredict.update({doc['_id'] : collabscore})
+    # sort the dict, then output the first 5 with highest score
+    sorted(scoredict.values(), reverse=True)
+    slist = list(scoredict.keys())
+    # make a dict with _id and score? then sort by score and return _ids?
+    if len(slist) >= 5:
+        for i in range(5):
+            # Actually, I need to get teh _id, then pop the dict, then find the id and append it to the list
+            recommended = collabDB.find_one({'_id' : slist[0]})
+            scorelist.append(recommended)
+            del slist[0]
+        return json.dumps(scorelist, default=json_util.default)
+    else:
+        for i in range(len(slist)):
+            # Actually, I need to get teh _id, then pop the dict, then find the id and append it to the list
+            recommended = collabDB.find_one({'_id' : slist[0]})
+            scorelist.append(recommended)
+            del slist[0]
+        return json.dumps(scorelist, default=json_util.default) # Should I be worried this can return an empty list?
 
 # Get user classes and skills from JSON
 # parse and compare with all active collabs
