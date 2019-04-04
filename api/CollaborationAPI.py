@@ -395,7 +395,7 @@ def join_collab() :
                 if result.modified_count > 0:
                     return json.dumps({'success': True})
                 else:
-                    json.dumps({'error': "joining collabs failed"})
+                    return json.dumps({'error': "joining collabs failed"})
             except Exception as e:
                 print(e)
                 return json.dumps({'error': "Error while trying to update existing doc."})
