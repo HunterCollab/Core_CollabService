@@ -185,12 +185,10 @@ def delete_collab() : # Take teh collaboration _ID and
         print(e)
         return json.dumps({'error': "Server error finding doc to delete"})
 
-
 # Edit collabs
 @collab_api.route("/deleteCollabForReal", methods = ['DELETE'])
 @api.AuthorizationAPI.requires_auth
-def delete_collab_for_real() : # lol @ delete collab for real. I like the way you name your functions.
-    # Take teh collaboration _ID and
+def delete_collab_for_real() : # Take teh collaboration _ID and
     # Verify if user is owner first THIS HAS NOT BEEN DONE YET
     # Make sure collab exists in first try block
     # Attempt to delete in second try block
@@ -527,6 +525,48 @@ def recommend_collabs() :
             scorelist.append(recommended)
             del slist[0]
         return json.dumps(scorelist, default=json_util.default) # Should I be worried this can return an empty list?
+
+@collab_api.route("/getCollabTitle", methods = ['GET'])
+@api.AuthorizationAPI.requires_auth
+def get_collab_title(): # going to assume this is a string
+    data = request.get_json()
+    collab_id = data['id']
+    record = collabDB.find_one({'_id': ObjectId(collab_id)})
+    if record is None:
+        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
+    else:
+        return json.dumps({'Title': record['title']})
+
+@collab_api.route("/getCollabTitle2", methods = ['GET'])
+@api.AuthorizationAPI.requires_auth
+def get_collab_title2(cid): # going to assume this is a string
+    collab_id = cid
+    record = collabDB.find_one({'_id': ObjectId(collab_id)})
+    if record is None:
+        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
+    else:
+        return json.dumps({'Title': record['title']})
+
+@collab_api.route("/getCollabTitle3", methods = ['GET'])
+@api.AuthorizationAPI.requires_auth
+def get_collab_title3(): # going to assume this is a string
+    data = request.get_json()
+    collab_id = data['id']
+    record = collabDB.find_one({'_id': ObjectId(collab_id)})
+    if record is None:
+        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
+    else:
+        return (record['title'])
+
+@collab_api.route("/getCollabTitle4", methods = ['GET'])
+@api.AuthorizationAPI.requires_auth
+def get_collab_title4(cid): # going to assume this is a string
+    collab_id = cid
+    record = collabDB.find_one({'_id': ObjectId(collab_id)})
+    if record is None:
+        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
+    else:
+        return (record['title'])
 
 # Get user classes and skills from JSON
 # parse and compare with all active collabs
