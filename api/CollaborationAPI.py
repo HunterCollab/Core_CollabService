@@ -267,7 +267,7 @@ def edit_collab() :
                     {"_id": ObjectId(collab_id)},
                     {
                         "$set": {
-                            "date": data['size']
+                            "date": data['date']
                         }
                     }
                 )
