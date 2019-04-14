@@ -4,6 +4,7 @@ import api.AuthorizationAPI
 from services.DBConn import db
 from bson import Binary
 import json
+import hashlib, os
 
 user_api = Blueprint('user_api', __name__)
 userDB = db.users
@@ -30,10 +31,15 @@ def createUser():
     if len(password) < 6 or len(password) > 52:
         return json.dumps({'error': "Password must be at least 6 characters and less than 52 characters long.", 'code': 6})
 
+    salt = os.urandom(32).hex()
+    hashy = hashlib.sha512()
+    hashy.update(('%s%s' % (salt, password)).encode('utf-8'))
+    hashed_password = hashy.hexdigest()
+
     try:
         record = userDB.find_one({'username': username}, {'_id': 1})
         if record is None:
-            user = {'username': username, 'password': password, 'name': username, 'github': '', 'linkedin': '', 'skills': [],
+            user = {'username': username, 'salt': salt, 'password': hashed_password, 'name': username, 'github': '', 'linkedin': '', 'skills': [],
                     'classes': [], 'profilePicture': None}
             result = userDB.insert_one(user)
             if result.inserted_id:
