@@ -1,5 +1,5 @@
 import os
-
+import services.realtime.messaging.RealtimeServer as RealtimeServer
 from flask import Flask
 from api.AuthorizationAPI import auth_api
 from api.UserAPI import user_api
@@ -23,6 +23,6 @@ def helloWorld():
 
 
 if __name__ == "__main__":
-    # RealtimeServer.getInstance() # Start the Realtime-Messaging Server
+    # RealtimeServer.getInstance()  # Start the Realtime-Messaging Server
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, threaded=True)

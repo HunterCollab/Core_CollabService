@@ -1,7 +1,8 @@
 import security.JWT
 import threading
 import json
-
+import time
+from threading import Timer
 from flask import Blueprint, request
 from services.data.DBConn import db
 
@@ -34,7 +35,7 @@ def searchClasses():
     return json.dumps({'matches': ret})
 
 
-def purgeLoop(plThread):
+def purgeLoop():
     global allDistinctSkills
     global allDistinctClasses
 
@@ -47,14 +48,16 @@ def purgeLoop(plThread):
     # allDistinctSkills.sort();
     # allDistinctClasses.sort();
 
-    if not plThread.is_set():
-        # call f() again in 5 mins
-        threading.Timer(60 * 5, purgeLoop, [plThread]).start()
+    try:
+        Timer(6.0 * 5, purgeLoop).start()
+    except (KeyboardInterrupt, SystemExit):
+        print("EXCEPT")
 
 
-plThread = threading.Event()
 try:
-    purgeLoop(plThread)
+    thread = threading.Thread(target=purgeLoop(), args=())
+    thread.daemon = True
+    thread.start()
+    time.sleep(3)
 except (KeyboardInterrupt, SystemExit):
     print("EXCEPT")
-    plThread.set()

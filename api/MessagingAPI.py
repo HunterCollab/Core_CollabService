@@ -1,6 +1,7 @@
 import time
 import json
 import security.JWT
+import services.realtime.messaging.RealtimeServer as RealtimeServer
 
 from flask import Blueprint, request
 from services.data.DBConn import db
@@ -137,23 +138,25 @@ def sendMessage():
                     'messages': []
                 }
                 result = convoDB.insert_one(newConvo)  # Upload that list to the server.
-                if result.inserted_id:
-                    print("New convo created.")
-                else:
+                if not result.inserted_id:
                     return json.dumps({'error': "Failed to create new convo.", 'code': 1})
+                # print("New convo created.")
+
         except Exception as e:
             print(e)
             return json.dumps({'error': "Server error while trying to create new convo.", 'code': -9})
 
-
-    # Add message to convo
     try:
         message = {'sender': username, 'message': message, 'time': current_milli_time()}
         if not collabId:
             convoDB.update({'participants': participants}, {'$push': {'messages': {'$each': [message], '$sort': {'time': -1}}}})
+            RealtimeServer.getInstance().pingClients(participants)
         else:
             collabDB.update({'_id': ObjectId(collabId)},
                            {'$push': {'messages': {'$each': [message], '$sort': {'time': -1}}}})
+            collabrec = collabDB.find_one({'_id': ObjectId(collabId)}, {'members': 1})
+            if collabrec:
+                RealtimeServer.getInstance().pingClients(collabrec['members'])
         return json.dumps({'success': True})
     except Exception as e:
         print(e)

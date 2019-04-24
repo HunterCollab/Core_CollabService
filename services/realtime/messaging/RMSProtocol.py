@@ -7,7 +7,9 @@ def writeUTF(sock, msg):
 
 
 def readUTF(sock):
-    return str(rawRead(sock), 'utf-8')
+    raw = rawRead(sock)
+    if raw is None: return None
+    return str(raw, 'utf-8')
 
 
 def rawWrite(sock, message):

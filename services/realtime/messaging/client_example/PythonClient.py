@@ -51,7 +51,17 @@ def connect(token):
         # Connect to server and send data
         sock.connect((HOST, PORT))
         writeUTF(sock, token)
-        print(readUTF(sock))
+        msg = readUTF(sock)
+        if not msg == "AUTH_SUCCESS":
+            return
+
+        msg = readUTF(sock)
+        while msg:
+            if msg == "PING":
+                print("Ping received.")
+                msg = readUTF(sock)
+            else:
+                msg = False
     finally:
         sock.close()
 

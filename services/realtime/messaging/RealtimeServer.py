@@ -1,5 +1,6 @@
 import socketserver
 import threading
+import time
 import services.realtime.messaging.RMSUtil as RMSUtil
 from services.realtime.messaging.RMSClient import RMSClient
 
@@ -25,15 +26,25 @@ class RealtimeServer(object):
         # Init
         self.clients = {}
         # Start a new thread for the listener
-        self.thread = threading.Thread(target=self.listener, args=())
-        self.thread.daemon = True
-        self.thread.start()
+        try:
+            self.thread = threading.Thread(target=self.listener, args=())
+            self.thread.daemon = True
+            self.thread.start()
+            time.sleep(5)
+        except (KeyboardInterrupt, SystemExit):
+            RMSUtil.log("Shutting down RMS Server ... ")
 
     def addClient(self, username, rmsClient):
+        RMSUtil.log("Adding " + username + " to active client list.")
         self.clients[username] = rmsClient
 
     def removeClient(self, username):
-        rmsClient = self.clients.pop(username)
+        if username in self.clients: self.clients.pop(username)
+
+    def pingClients(self, users):
+        for username in users:
+            if username in self.clients: self.clients[username].ping()
 
 
-
+def getInstance():  # /r/ilikejava
+    return RealtimeServer.getInstance()
