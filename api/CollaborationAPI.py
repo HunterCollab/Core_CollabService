@@ -492,7 +492,7 @@ def leave_collab() :
 
 
 # Recommend collabs
-@collab_api.route("/getRecommendedCollabs", methods=['GET'])
+@collab_api.route("/getRecommendedCollabs", methods=['POST'])
 @security.JWT.requires_auth
 def recommend_collabs():
     record = request.get_json()
