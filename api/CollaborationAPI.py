@@ -13,6 +13,7 @@ client = MongoClient('mongodb://localhost:27017')
 collab_api = Blueprint('collab_api', __name__)
 collabDB = db.collabs
 
+
 class SetEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, set):
@@ -489,10 +490,11 @@ def leave_collab() :
                     print(e)
                     return json.dumps({'error': "Error while trying to leave collab."})
 
+
 # Recommend collabs
-@collab_api.route("/getRecommendedCollabs", methods = ['GET'])
+@collab_api.route("/getRecommendedCollabs", methods=['POST'])
 @security.JWT.requires_auth
-def recommend_collabs() :
+def recommend_collabs():
     record = request.get_json()
 
     scoredict = OrderedDict()
