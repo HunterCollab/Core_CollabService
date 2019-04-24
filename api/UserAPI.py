@@ -1,10 +1,12 @@
+import os
 import io
-from flask import Blueprint, request, send_file, Response
-import api.AuthorizationAPI
-from services.DBConn import db
-from bson import Binary
+import security.JWT
 import json
-import hashlib, os
+import hashlib
+
+from flask import Blueprint, request, send_file, Response
+from services.data.DBConn import db
+from bson import Binary
 
 user_api = Blueprint('user_api', __name__)
 userDB = db.users
@@ -44,7 +46,7 @@ def createUser():
             result = userDB.insert_one(user)
             if result.inserted_id:
                 print("created new user: " + username)
-                authtoken = api.AuthorizationAPI.encode_auth_token(username).decode("utf-8")
+                authtoken = security.JWT.encode_auth_token(username).decode("utf-8")
                 return json.dumps({'success': True, 'token': authtoken})
             else:
                 return json.dumps({'error': "Server error while creating new user.", 'code': 7})
@@ -57,7 +59,7 @@ def createUser():
 
 @user_api.route("/", methods=['GET'], defaults={'username': None})
 @user_api.route("/<username>", methods=['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def getUserDetails(username):
     if not username:
         username = request.userNameFromToken
@@ -80,7 +82,7 @@ def getUserDetails(username):
 
 @user_api.route("/skills", methods=['GET'], defaults={'username': None})
 @user_api.route("/skills/<username>", methods=['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def getSkills(username):
     if not username:
         username = request.userNameFromToken
@@ -103,7 +105,7 @@ def getSkills(username):
 
 @user_api.route("/classes", methods=['GET'], defaults={'username': None})
 @user_api.route("/classes/<username>", methods=['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def getClasses(username):
     if not username:
         username = request.userNameFromToken
@@ -125,7 +127,7 @@ def getClasses(username):
 
 
 @user_api.route("", methods=['POST'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def updateUserDetails():
     content = request.get_json()
     username = request.userNameFromToken
@@ -183,8 +185,9 @@ def updateUserDetails():
 
     return json.dumps({'success': True})
 
+
 @user_api.route("/skills", methods=['POST'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def updateSkills():
     content = request.get_json()
     # print(content)
@@ -220,7 +223,7 @@ def updateSkills():
 
 
 @user_api.route("/classes", methods=['POST'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def updateClasses():
     content = request.get_json()
     # print(content)
@@ -256,7 +259,7 @@ def updateClasses():
 
 
 @user_api.route("/profilePicture", methods=['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def getUserPicture():
     username = request.args.get('username')
     if not username:
@@ -280,7 +283,7 @@ def getUserPicture():
 
 
 @user_api.route("/profilePicture", methods=['POST'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def updateUserPicture():
     username = request.userNameFromToken
     file = request.files['pic'].read()

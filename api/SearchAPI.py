@@ -1,8 +1,9 @@
-from flask import Blueprint, request
-import api.AuthorizationAPI
-from services.DBConn import db
+import security.JWT
 import threading
 import json
+
+from flask import Blueprint, request
+from services.data.DBConn import db
 
 search_api = Blueprint('search_api', __name__)
 userDB = db.users
@@ -12,7 +13,7 @@ allDistinctClasses = None
 
 
 @search_api.route("/skills", methods=['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def searchSkills():
     query = request.args.get('query').lower()
     ret = []
@@ -23,7 +24,7 @@ def searchSkills():
 
 
 @search_api.route("/classes", methods=['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def searchClasses():
     query = request.args.get('query').lower()
     ret = []
@@ -33,22 +34,27 @@ def searchClasses():
     return json.dumps({'matches': ret})
 
 
-def f(f_stop):
+def purgeLoop(plThread):
     global allDistinctSkills
     global allDistinctClasses
-    print("Fetching all avaliable skills in the database...")
+
+    print("[Skill Cache] Purging ...")
     allDistinctSkills = userDB.distinct("skills")
-    # allDistinctSkills.sort();
-    print("Fetching all avaliable classes in the database...")
+
+    print("[Class Cache] Purging ...")
     allDistinctClasses = userDB.distinct("classes")
+
+    # allDistinctSkills.sort();
     # allDistinctClasses.sort();
-    if not f_stop.is_set():
+
+    if not plThread.is_set():
         # call f() again in 5 mins
-        threading.Timer(60 * 5, f, [f_stop]).start()
+        threading.Timer(60 * 5, purgeLoop, [plThread]).start()
 
 
-# start calling skill & class updates.
-f(threading.Event())
-
-# stop the thread when needed
-# f_stop.set()
+plThread = threading.Event()
+try:
+    purgeLoop(plThread)
+except (KeyboardInterrupt, SystemExit):
+    print("EXCEPT")
+    plThread.set()

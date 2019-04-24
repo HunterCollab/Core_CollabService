@@ -1,10 +1,11 @@
-from flask import Blueprint, request
-import api.AuthorizationAPI
-from services.DBConn import db
+import time
 import json
+import security.JWT
+
+from flask import Blueprint, request
+from services.data.DBConn import db
 from bson.objectid import ObjectId
 from bson import json_util
-import time
 
 messaging_api = Blueprint('messaging_api', __name__)
 convoDB = db.conversations
@@ -32,7 +33,7 @@ def extract_time(json):
         return 0
 
 @messaging_api.route("/myConvos", methods=['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def getConvoList():
     username = request.userNameFromToken
 
@@ -68,7 +69,7 @@ def getConvoList():
 
 
 @messaging_api.route("/getMessages", methods=['POST'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def getMessages():
     username = request.userNameFromToken
     data = request.get_json()
@@ -107,7 +108,7 @@ def getMessages():
 
 
 @messaging_api.route("/sendMessage", methods=['POST'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def sendMessage():
     username = request.userNameFromToken
     data = request.get_json()

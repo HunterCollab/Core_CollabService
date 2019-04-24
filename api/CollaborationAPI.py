@@ -1,10 +1,10 @@
+import security.JWT
+import json
+
 from flask import Blueprint, request
-import api.AuthorizationAPI
-from services.DBConn import db
-import time # Imported time to do the basic date functions.
+from services.data.DBConn import db
 from bson import json_util  # Trying a PyMongo serializer
 from bson.objectid import ObjectId
-import json
 from pymongo import MongoClient
 from collections import OrderedDict
 
@@ -21,7 +21,7 @@ class SetEncoder(json.JSONEncoder):
 
 
 @collab_api.route("/createCollab", methods=['POST'])  # Create collaboration, post method
-@api.AuthorizationAPI.requires_auth  # Requires authentication beforehand
+@security.JWT.requires_auth  # Requires authentication beforehand
 def create_collab():
     """"
         Function to create and upload new collaboration details
@@ -83,7 +83,7 @@ def create_collab():
 
 
 @collab_api.route("/getCollabDetails", methods=['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def get_collab():
     """
         Function to return user's collaborations
@@ -108,7 +108,7 @@ def get_collab():
 
 
 @collab_api.route("/getAllCollabs", methods=['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def get_all_collabs():
     '''
         Return all active collaborations
@@ -127,7 +127,7 @@ def get_all_collabs():
         return json.dumps({'error': "Getting all collabs.", 'code' : 70})
 
 @collab_api.route("/getActiveCollabs", methods = ['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def get_all_active_collabs():
     '''
         Return all active collaborations
@@ -146,7 +146,7 @@ def get_all_active_collabs():
         return json.dumps({'error': "Getting all active collabs.", 'code' : 70})
 
 @collab_api.route("/deleteCollab", methods = ['POST'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def delete_collab() : # Take teh collaboration _ID and
     # Verify if user is owner first THIS HAS NOT BEEN DONE YET
     # Make sure collab exists in first try block
@@ -187,7 +187,7 @@ def delete_collab() : # Take teh collaboration _ID and
 
 # Edit collabs
 @collab_api.route("/deleteCollabForReal", methods = ['DELETE'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def delete_collab_for_real() : # Take teh collaboration _ID and
     # Verify if user is owner first THIS HAS NOT BEEN DONE YET
     # Make sure collab exists in first try block
@@ -219,7 +219,7 @@ def delete_collab_for_real() : # Take teh collaboration _ID and
         return json.dumps({'error': "Server error finding doc to delete"})
 
 @collab_api.route("/editCollab", methods = ['POST'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def edit_collab() :
     data = request.get_json()
     # Somehow get the collab id from the json
@@ -361,7 +361,7 @@ def edit_collab() :
 # In search API, need a filter collabs changed to check
 
 @collab_api.route("/joinCollab", methods = ['POST'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def join_collab() :
     username = request.args.get('username')
     if not username:
@@ -401,7 +401,7 @@ def join_collab() :
                 return json.dumps({'error': "Error while trying to update existing doc."})
 
 @collab_api.route("/leaveCollab", methods = ['POST'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def leave_collab() :
     # Retrieve a username variable from the username token
     username = request.args.get('username')
@@ -491,7 +491,7 @@ def leave_collab() :
 
 # Recommend collabs
 @collab_api.route("/getRecommendedCollabs", methods = ['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def recommend_collabs() :
     record = request.get_json()
 
@@ -527,7 +527,7 @@ def recommend_collabs() :
         return json.dumps(scorelist, default=json_util.default) # Should I be worried this can return an empty list?
 
 @collab_api.route("/getCollabTitle", methods = ['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def get_collab_title(): # going to assume this is a string
     data = request.get_json()
     collab_id = data['id']
@@ -538,7 +538,7 @@ def get_collab_title(): # going to assume this is a string
         return json.dumps({'Title': record['title']})
 
 @collab_api.route("/getCollabTitle2", methods = ['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def get_collab_title2(cid): # going to assume this is a string
     collab_id = cid
     record = collabDB.find_one({'_id': ObjectId(collab_id)})
@@ -548,7 +548,7 @@ def get_collab_title2(cid): # going to assume this is a string
         return json.dumps({'Title': record['title']})
 
 @collab_api.route("/getCollabTitle3", methods = ['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def get_collab_title3(): # going to assume this is a string
     data = request.get_json()
     collab_id = data['id']
@@ -559,7 +559,7 @@ def get_collab_title3(): # going to assume this is a string
         return (record['title'])
 
 @collab_api.route("/getCollabTitle4", methods = ['GET'])
-@api.AuthorizationAPI.requires_auth
+@security.JWT.requires_auth
 def get_collab_title4(cid): # going to assume this is a string
     collab_id = cid
     record = collabDB.find_one({'_id': ObjectId(collab_id)})
