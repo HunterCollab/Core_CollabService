@@ -95,7 +95,7 @@ def getMessages():
     if collabId:
         records = collabDB.find({'_id': ObjectId(collabId)}, {'_id': 1, 'messages': {'$slice': [(20 * page), 20]}})
     else:
-        records = convoDB.find({'participants': participants}, {'_id': 0, 'messages': {'$slice': [(20 * page), 20]}})
+        records = convoDB.find({'participants': { "$size" : 2, "$all": participants }}, {'_id': 0, 'messages': {'$slice': [(20 * page), 20]}})
 
     listed = list(records)
     print(listed)
@@ -131,7 +131,7 @@ def sendMessage():
 
     if not collabId:
         try:
-            record = convoDB.find_one({'participants': participants}, {'_id': 1})
+            record = convoDB.find_one({'participants': { "$size" : 2, "$all": participants }}, {'_id': 1})
             if record is None:  # Create conversation with all the participants
                 newConvo = {
                     'participants': participants,
@@ -149,7 +149,7 @@ def sendMessage():
     try:
         message = {'sender': username, 'message': message, 'time': current_milli_time()}
         if not collabId:
-            convoDB.update({'participants': participants}, {'$push': {'messages': {'$each': [message], '$sort': {'time': -1}}}})
+            convoDB.update({'participants': { "$size" : 2, "$all": participants }}, {'$push': {'messages': {'$each': [message], '$sort': {'time': -1}}}})
             RealtimeServer.getInstance().pingClients(participants)
         else:
             collabDB.update({'_id': ObjectId(collabId)},
