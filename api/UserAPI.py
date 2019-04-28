@@ -125,6 +125,14 @@ def getClasses(username):
         print(e)
         return json.dumps({'error': "Server error while checking if username already exists."})
 
+def skillClassValidityChecker(data):
+    if isinstance(data, list):
+        for elem in data:
+            if not isinstance(data, str):
+                return False
+    else:
+        return False
+    return True
 
 @user_api.route("", methods=['POST'])
 @security.JWT.requires_auth
@@ -163,7 +171,7 @@ def updateUserDetails():
             }
         )
 
-    if 'skills' in content and isinstance(content['skills'], list):
+    if 'skills' in content and skillClassValidityChecker(content['skills']):
         res = userDB.update_one(
             {"username": username},
             {
@@ -173,7 +181,7 @@ def updateUserDetails():
             }
         )
 
-    if 'classes' in content and isinstance(content['classes'], list):
+    if 'classes' in content and skillClassValidityChecker(content['classes']):
         res = userDB.update_one(
             {"username": username},
             {
@@ -195,8 +203,8 @@ def updateSkills():
     if not ('skills' in content):
         return json.dumps({'error': "'skills' not provided.", 'code': 1})
 
-    if not (isinstance(content['skills'], list)):
-        return json.dumps({'error': "'skills' is not an array.", 'code': 2})
+    if not (skillClassValidityChecker(content['skills'])):
+        return json.dumps({'error': "'skills' is not a valid array.", 'code': 2})
 
     username = request.userNameFromToken
 
@@ -231,8 +239,8 @@ def updateClasses():
     if not ('classes' in content):
         return json.dumps({'error': "'classes' not provided.", 'code': 1})
 
-    if not (isinstance(content['classes'], list)):
-        return json.dumps({'error': "'classes' is not an array.", 'code': 2})
+    if not (skillClassValidityChecker(content['classes'])):
+        return json.dumps({'error': "'classes' is not a valid array.", 'code': 2})
 
     username = request.userNameFromToken
 

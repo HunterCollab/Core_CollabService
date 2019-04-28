@@ -49,7 +49,7 @@ def purgeLoop():
     # allDistinctClasses.sort();
 
     try:
-        Timer(6.0 * 5, purgeLoop).start()
+        Timer(60.0 * 5, purgeLoop).start()
     except (KeyboardInterrupt, SystemExit):
         print("EXCEPT")
 
