@@ -574,3 +574,22 @@ def get_collab_title4(cid): # going to assume this is a string
 # parse and compare with all active collabs
 # put into sorted array and output at random from the first few
 
+@collab_api.route("/getCollab", methods = ['GET'])
+@security.JWT.requires_auth
+def get_collab_by_id():
+    data = request.get_json()
+    collab_id = data['id']
+
+    try:
+        record = collabDB.find({'_id': ObjectId(collab_id)})
+        if record is None:
+            return json.dumps({'error': "No collaborations found"})
+        else:
+            doc_list = list(collabDB.find({'_id': ObjectId(collab_id)}))
+            return json.dumps(doc_list, default=json_util.default)
+
+    except Exception as e:
+        print(e)
+        return json.dumps({'error': "Getting collab", 'code' : 70})
+
+
