@@ -574,7 +574,7 @@ def get_collab_title4(cid): # going to assume this is a string
 # parse and compare with all active collabs
 # put into sorted array and output at random from the first few
 
-@collab_api.route("/getCollab", methods = ['GET'])
+@collab_api.route("/getCollab", methods = ['POST'])
 @security.JWT.requires_auth
 def get_collab_by_id():
     data = request.get_json()
