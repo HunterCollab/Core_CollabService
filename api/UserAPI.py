@@ -45,7 +45,7 @@ def createUser():
                     'classes': [], 'profilePicture': None}
             result = userDB.insert_one(user)
             if result.inserted_id:
-                print("created new user: " + username)
+                # print("created new user: " + username)
                 authtoken = security.JWT.encode_auth_token(username).decode("utf-8")
                 return json.dumps({'success': True, 'token': authtoken})
             else:
@@ -96,7 +96,7 @@ def getSkills(username):
         else:
             del record['_id']  # don't send document id
             # del record['password'] #don't send the password
-            print("returned user skills: " + username)
+            # print("returned user skills: " + username)
             return json.dumps(record)
     except Exception as e:
         print(e)
@@ -119,7 +119,7 @@ def getClasses(username):
         else:
             del record['_id']  # don't send document id
             # del record['password'] #don't send the password
-            print("returned user skills: " + username)
+            # print("returned user skills: " + username)
             return json.dumps(record)
     except Exception as e:
         print(e)
@@ -298,7 +298,7 @@ def updateUserPicture():
     file = request.files['pic'].read()
     if not file:
         return json.dumps({'error': "No file uploaded with identifier 'pic'", 'code': 1})
-    print(len(file))
+    # print(len(file))
     if len(file) > (1000000 * 5):
         return json.dumps({'error': "File too large.", 'code': 3})
 
