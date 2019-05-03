@@ -100,7 +100,7 @@ def get_collab():
         if record is None:
             return json.dumps({'error': "No collaborations found for username: " + username})
         else:
-            print("returned collab details: ")
+            # print("returned collab details: ")
             doc_list = list(record)
             return json.dumps(doc_list, default=json_util.default)
     except Exception as e:

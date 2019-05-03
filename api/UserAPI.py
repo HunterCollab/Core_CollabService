@@ -73,7 +73,7 @@ def getUserDetails(username):
         else:
             del record['_id']  # don't send document id
             # del record['password'] #don't send the password
-            print("returned user details: " + username)
+            # print("returned user details: " + username)
             return json.dumps(record)
     except Exception as e:
         print(e)
