@@ -119,7 +119,7 @@ def get_all_collabs():
         if record is None:
             return json.dumps({'error': "No collaborations found"})
         else:
-            print("returned collab details: ")
+            #print("returned collab details: ")
             doc_list = list(collabDB.find())
             return json.dumps(doc_list, default=json_util.default)
 
@@ -138,7 +138,7 @@ def get_all_active_collabs():
         if record is None:
             return json.dumps({'error': "No collaborations found"})
         else:
-            print("returned collab details: ")
+            #print("returned collab details: ")
             doc_list = list(collabDB.find({ 'status' : True}))
             return json.dumps(doc_list, default=json_util.default)
 
