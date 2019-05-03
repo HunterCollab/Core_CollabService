@@ -98,7 +98,7 @@ def getMessages():
         records = convoDB.find({'participants': { "$size" : 2, "$all": participants }}, {'_id': 0, 'messages': {'$slice': [(20 * page), 20]}})
 
     listed = list(records)
-    print(listed)
+    # print(listed)
 
     for elem in listed:
         if 'messages' in elem:
