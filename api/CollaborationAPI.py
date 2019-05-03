@@ -495,12 +495,23 @@ def leave_collab() :
 @collab_api.route("/getRecommendedCollabs", methods=['POST'])
 @security.JWT.requires_auth
 def recommend_collabs():
+    username = request.args.get('username')
+    if not username:
+        username = request.userNameFromToken
+    else:
+        username = username.lower()
     record = request.get_json()
 
     scoredict = OrderedDict()
     scorelist = []
     # iterate through the collabs, match the skills and classes and input to list
-    for doc in collabDB.find({'status': True}):
+    for doc in collabDB.find({
+        '$and' : [
+            {'status' : True},
+            {'members' : {'$nin' : [username]}}
+        ]
+    }):
+
         collabscore = 0
         for elem in record['skills']:
             if doc['skills'].count(elem): # there is at least one match in skills, increment
@@ -513,8 +524,8 @@ def recommend_collabs():
     sorted(scoredict.values(), reverse=True)
     slist = list(scoredict.keys())
     # make a dict with _id and score? then sort by score and return _ids?
-    if len(slist) >= 5:
-        for i in range(5):
+    if len(slist) >= 3:
+        for i in range(3):
             # Actually, I need to get teh _id, then pop the dict, then find the id and append it to the list
             recommended = collabDB.find_one({'_id' : slist[0]})
             scorelist.append(recommended)
