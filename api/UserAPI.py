@@ -125,10 +125,11 @@ def getClasses(username):
         print(e)
         return json.dumps({'error': "Server error while checking if username already exists."})
 
+
 def skillClassValidityChecker(data):
     if isinstance(data, list):
         for elem in data:
-            if not isinstance(data, str):
+            if not isinstance(elem, str):
                 return False
     else:
         return False
