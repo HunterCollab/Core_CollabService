@@ -93,9 +93,11 @@ def getMessages():
     records = []
 
     if collabId:
-        records = collabDB.find({'_id': ObjectId(collabId)}, {'_id': 1, 'messages': {'$slice': [(20 * page), 20]}})
+        #records = collabDB.find({'_id': ObjectId(collabId)}, {'_id': 1, 'messages': {'$slice': [(20 * page), 20]}})
+        records = collabDB.find({'_id': ObjectId(collabId)}, {'_id': 1, 'messages': {'$slice': [(20 * page), 1000]}})
     else:
-        records = convoDB.find({'participants': { "$size" : 2, "$all": participants }}, {'_id': 0, 'messages': {'$slice': [(20 * page), 20]}})
+        #records = convoDB.find({'participants': { "$size" : 2, "$all": participants }}, {'_id': 0, 'messages': {'$slice': [(20 * page), 20]}})
+        records = convoDB.find({'participants': {"$size": 2, "$all": participants}}, {'_id': 0, 'messages': {'$slice': [(20 * page), 1000]}})
 
     listed = list(records)
     # print(listed)
