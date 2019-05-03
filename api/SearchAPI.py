@@ -8,9 +8,18 @@ from services.data.DBConn import db
 
 search_api = Blueprint('search_api', __name__)
 userDB = db.users
+classesDB = db.classes
 
 allDistinctSkills = None
 allDistinctClasses = None
+allPresetClasses = []
+
+classesPreset = classesDB.find({'major': 'CSCI'})
+classesList = list(classesPreset)
+for cls in classesList:
+    toAdd = cls['major'] + ' ' + str(cls['number'])[:3] + " - " + cls['title']
+    #print(toAdd)
+    allPresetClasses.append(toAdd)
 
 
 @search_api.route("/skills", methods=['GET'])
@@ -44,6 +53,8 @@ def purgeLoop():
 
     print("[Class Cache] Purging ...")
     allDistinctClasses = userDB.distinct("classes")
+
+    allDistinctClasses = allDistinctClasses + allPresetClasses
 
     # allDistinctSkills.sort();
     # allDistinctClasses.sort();
