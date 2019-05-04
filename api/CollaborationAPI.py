@@ -351,10 +351,13 @@ def edit_collab() :
                         }
                     }
                 )
+
             if record.modified_count > 0:
                 return json.dumps({'success': True})
             else:
-                return json.dumps({'error': "Updating collabs failed"})
+                return json.dumps({'success': True})
+                """modified_count is 0 if skills changed and applicants didn't, so error should not be returned"""
+                #return json.dumps({'error': "Updating collabs failed"})
         except Exception as e:
             print(e)
             return json.dumps({'error': "Error while trying to update existing doc."})
