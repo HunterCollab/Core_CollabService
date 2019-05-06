@@ -1,12 +1,12 @@
 import datetime
 import jwt
-
+import os
 from functools import wraps
 from flask import request, Response
 
 
-SECRET_KEY = b'-\x1c\x9b\xa7x\xacH\nE{\x85=\xa6\x0e[\xe2\xe3\xb2\x01D\xc4\xd2x\x0f'
-
+SECRET_KEY = "ThisIsAVeryBadAPISecetKeyThatIsOnlyUsedWhenRunningLocally"
+if ('API_KEY' in os.environ): SECRET_KEY = os.environ['API_KEY'];
 
 # generates an encrypted auth token using the encrypted using the secret key valid for 24 hours
 def encode_auth_token(userName):
