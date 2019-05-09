@@ -43,6 +43,8 @@ def requires_auth(f):
         auth_token = request.cookies.get('capstoneAuth')
         if not auth_token:
             auth_token = request.headers.get('capstoneAuth')
+        if not auth_token:
+            auth_token = request.headers.get('Authorization')
         if not auth_token:  # Authtoken no present so send 401
             return Response('Missing Auth Token!\n' 'You have to login with proper credentials', 401,
                             {'WWW-Authenticate': 'Basic realm="Login Required"'})
