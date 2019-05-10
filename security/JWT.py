@@ -41,7 +41,7 @@ def decode_auth_token(auth_token):
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth_token = None
+        auth_token = False
         if not auth_token:
             auth_token = request.headers.get('capstoneAuth')
         if not auth_token:
