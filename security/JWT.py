@@ -27,7 +27,7 @@ def encode_auth_token(userName):
 
 # Decodes the auth token and returns userid as integer if token is valid or else an error as a string
 def decode_auth_token(auth_token):
-    print(auth_token)
+    # print(auth_token)
     try:
         payload = jwt.decode(auth_token, SECRET_KEY)
         return 'SUCCESS' + payload['username']
