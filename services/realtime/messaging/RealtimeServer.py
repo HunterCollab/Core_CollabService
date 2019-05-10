@@ -5,6 +5,10 @@ import services.realtime.messaging.RMSUtil as RMSUtil
 from services.realtime.messaging.RMSClient import RMSClient
 
 
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    pass
+
+
 class RealtimeServer(object):
 
     instance = None
@@ -15,23 +19,21 @@ class RealtimeServer(object):
             RealtimeServer.instance = RealtimeServer()
         return RealtimeServer.instance
 
-    @staticmethod
-    def listener():
-        RMSUtil.log("Starting Realtime Messaging Server on PORT 8484 ... ")
-        # Listen on 8484 and pass the handle to RMSClient
-        server = socketserver.TCPServer(("0.0.0.0", 8484), RMSClient)
-        server.serve_forever()
-
     def __init__(self):
         # Init
         self.clients = {}
+        self.server = None
         # Start a new thread for the listener
         try:
-            self.thread = threading.Thread(target=self.listener, args=())
-            self.thread.daemon = True
-            self.thread.start()
-            time.sleep(5)
+            RMSUtil.log("Starting Realtime Messaging Server on PORT 8484 ... ")
+            self.server = ThreadedTCPServer(("0.0.0.0", 8484), RMSClient)
+            server_thread = threading.Thread(target=self.server.serve_forever)
+            # Exit the server thread when the main thread terminates
+            server_thread.daemon = True
+            server_thread.start()
         except (KeyboardInterrupt, SystemExit):
+            self.server.shutdown(1)
+            self.server.close()
             RMSUtil.log("Shutting down RMS Server ... ")
 
     def addClient(self, username, rmsClient):

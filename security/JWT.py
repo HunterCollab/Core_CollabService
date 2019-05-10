@@ -5,8 +5,8 @@ from functools import wraps
 from flask import request, Response
 
 
-SECRET_KEY = "ThisIsAVeryBadAPISecetKeyThatIsOnlyUsedWhenRunningLocally"
-if ('API_KEY' in os.environ): SECRET_KEY = os.environ['API_KEY'];
+SECRET_KEY = "ThisIsAVeryBadAPISecretKeyThatIsOnlyUsedWhenRunningLocally"
+if 'API_KEY' in os.environ: SECRET_KEY = os.environ['API_KEY']
 
 # generates an encrypted auth token using the encrypted using the secret key valid for 24 hours
 def encode_auth_token(userName):
@@ -27,6 +27,7 @@ def encode_auth_token(userName):
 
 # Decodes the auth token and returns userid as integer if token is valid or else an error as a string
 def decode_auth_token(auth_token):
+    #print(auth_token)
     try:
         payload = jwt.decode(auth_token, SECRET_KEY)
         return 'SUCCESS' + payload['username']

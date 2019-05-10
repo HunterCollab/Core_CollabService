@@ -2,7 +2,7 @@ import socketserver
 import services.realtime.messaging.RMSUtil as RMSUtil
 import services.realtime.messaging.RMSProtocol as RMSProtocol
 import services.realtime.messaging.RealtimeServer as RealtimeServer
-from security.JWT import decode_auth_token
+import security.JWT
 
 
 class RMSClient(socketserver.BaseRequestHandler):
@@ -26,7 +26,10 @@ class RMSClient(socketserver.BaseRequestHandler):
 
             self.log("Token Received: " + token)
 
-            username = decode_auth_token(token)
+            username = security.JWT.decode_auth_token(token)
+            print(security.JWT.decode_auth_token(
+                "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NTcwMTYzNjksImlhdCI6MTU1NjkyOTk2OCwidXNlcm5hbWUiOiJmcmFuay53aGl0ZTgzQG15aHVudGVyLmN1bnkuZWR1In0.-39uiWz4CuV3HV5l1G_MkJfDUNPhn7b4gr1eN-ubgRU"))
+            print(username)
             if username.startswith('SUCCESS'):
                 self.username = username[7:]
                 RealtimeServer.getInstance().addClient(self.username, self)
