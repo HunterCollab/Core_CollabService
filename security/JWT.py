@@ -41,11 +41,13 @@ def decode_auth_token(auth_token):
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth_token = request.cookies.get('capstoneAuth')
+        auth_token = None
+        if not auth_token:
+            auth_token = request.headers.get('capstoneAuth')
         if not auth_token:
             auth_token = request.headers.get('Authorization')
         if not auth_token:
-            auth_token = request.headers.get('capstoneAuth')
+            auth_token = request.cookies.get('capstoneAuth')
         if not auth_token:  # Authtoken no present so send 401
             return Response('Missing Auth Token!\n' 'You have to login with proper credentials', 401,
                             {'WWW-Authenticate': 'Basic realm="Login Required"'})
