@@ -27,9 +27,6 @@ class RMSClient(socketserver.BaseRequestHandler):
             self.log("Token Received: " + token)
 
             username = security.JWT.decode_auth_token(token)
-            print(security.JWT.decode_auth_token(
-                "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NTcwMTYzNjksImlhdCI6MTU1NjkyOTk2OCwidXNlcm5hbWUiOiJmcmFuay53aGl0ZTgzQG15aHVudGVyLmN1bnkuZWR1In0.-39uiWz4CuV3HV5l1G_MkJfDUNPhn7b4gr1eN-ubgRU"))
-            print(username)
             if username.startswith('SUCCESS'):
                 self.username = username[7:]
                 RealtimeServer.getInstance().addClient(self.username, self)
@@ -47,7 +44,7 @@ class RMSClient(socketserver.BaseRequestHandler):
             # just send back the same data, but upper-cased
             self.writeMessage(token.upper())
         except Exception as e:
-            print(e)
+            self.log(e)
             self.log("EXCEPTION @ RMSClient.handle")
 
     def readNextMessage(self):
