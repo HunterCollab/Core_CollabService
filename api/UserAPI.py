@@ -297,7 +297,7 @@ def getUserPicture():
 @security.JWT.requires_auth
 def updateUserPicture():
     username = request.userNameFromToken
-    file = request.files['pic'].read()
+    file = request.files['pic']
     if not file:
         return json.dumps({'error': "No file uploaded with identifier 'pic'", 'code': 1})
 
