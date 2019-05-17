@@ -18,6 +18,12 @@ current_milli_time = lambda: int(round(time.time() * 1000))
 
 
 def getDisplayName(username): #TODO Cache this.
+    """
+    Get the given name of an existing user from their username
+
+    :param username: string
+    :return: string
+    """
     record = userDB.find_one({'username': username}, {'name': 1})
     if record is None:
         return "UNKNOWN"
