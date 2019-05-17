@@ -12,6 +12,18 @@ auth_api = Blueprint('auth_api', __name__)
 
 @auth_api.route("/login")
 def login():
+    """A GET request can be sent to this endpoint to log in an existing user
+
+    URL Parameters:
+        username: string, required
+        password: string, required
+
+    When the server receives this request, it checks with the database to see if the password provided matches the one
+    in the database and if it does, it creates a JSON Web Token (JWT) and returns it to the client as the response.
+
+    If the parameters are not provided or if the password does not match or if the username does not exist, an
+    appropriate response is returned to the client.
+    """
     username = request.args.get("username")
     password = request.args.get("password")
     if not username:
