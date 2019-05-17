@@ -24,8 +24,18 @@ class SetEncoder(json.JSONEncoder):
 @collab_api.route("/createCollab", methods=['POST'])  # Create collaboration, post method
 @security.JWT.requires_auth  # Requires authentication beforehand
 def create_collab():
-    """"Endpoint to create new Collaborations. This endpoint requires the requesting user to be an authenticated user
+    """Endpoint to create new Collaborations. This endpoint requires the requesting user to be an authenticated user
     to properly function.
+
+    Request Body Parameters:
+        size: int, JSON, required
+        date: int, JSON, required
+        duration: int, JSON, required
+        location: string, JSON, required
+        title: string, JSON, required
+        description: string, JSON, required
+        classes: array of strings, JSON, required
+        skills: array of strings, JSON, required
 
     This endpoint receives relevant Collaboration information from sent JSON object and uploads it as a Collaboration to
     the Collaboration database, returning True on success. If it does not receive sufficient or proper data, the
@@ -554,48 +564,6 @@ def recommend_collabs():
             scorelist.append(recommended)
             del slist[0]
         return json.dumps(scorelist, default=json_util.default)
-
-@collab_api.route("/getCollabTitle", methods = ['GET'])
-@security.JWT.requires_auth
-def get_collab_title():
-    data = request.get_json()
-    collab_id = data['id']
-    record = collabDB.find_one({'_id': ObjectId(collab_id)})
-    if record is None:
-        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
-    else:
-        return json.dumps({'Title': record['title']})
-
-@collab_api.route("/getCollabTitle2", methods = ['GET'])
-@security.JWT.requires_auth
-def get_collab_title2(cid):
-    collab_id = cid
-    record = collabDB.find_one({'_id': ObjectId(collab_id)})
-    if record is None:
-        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
-    else:
-        return json.dumps({'Title': record['title']})
-
-@collab_api.route("/getCollabTitle3", methods = ['GET'])
-@security.JWT.requires_auth
-def get_collab_title3():
-    data = request.get_json()
-    collab_id = data['id']
-    record = collabDB.find_one({'_id': ObjectId(collab_id)})
-    if record is None:
-        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
-    else:
-        return (record['title'])
-
-@collab_api.route("/getCollabTitle4", methods = ['GET'])
-@security.JWT.requires_auth
-def get_collab_title4(cid):
-    collab_id = cid
-    record = collabDB.find_one({'_id': ObjectId(collab_id)})
-    if record is None:
-        return json.dumps({'error': "No collaborations update matched _id: " + collab_id})
-    else:
-        return (record['title'])
 
 @collab_api.route("/getCollab", methods = ['POST'])
 @security.JWT.requires_auth
