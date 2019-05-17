@@ -16,6 +16,16 @@ userDB = db.users
 
 @user_api.route("", methods=['PUT'])
 def createUser():
+    """
+    Endpoint to create a new user using specified username and password.
+
+    Request Body Parameters:
+        username : string, JSON, required
+        password : string, JSON, required
+
+    Queries the database to see if there is already a user with this username. If not, creates a new user this username
+    and password and default settings. If the process fails, an appropriate error message is returned.
+        """
     username = request.args.get('username')
     password = request.args.get('password')
 
@@ -63,6 +73,18 @@ def createUser():
 @user_api.route("/<username>", methods=['GET'])
 @security.JWT.requires_auth
 def getUserDetails(username):
+    """
+    Endpoint to get user details for a specified user, defaulting to the current user. This endpoint requires the
+    requesting user to be authorized.
+
+    URL Parameters:
+          username: string, optional
+    Return: user object, JSON
+
+    This endpoint queries the database for the user based on the current user's username. If the user is found in the
+    database, the user's details are returned in JSON format. If the process fails, an appropriate error message is
+    returned.
+         """
     if not username:
         username = request.userNameFromToken
     else:
@@ -86,6 +108,18 @@ def getUserDetails(username):
 @user_api.route("/skills/<username>", methods=['GET'])
 @security.JWT.requires_auth
 def getSkills(username):
+    """
+    Endpoint to get skills for a specified user, defaulting to the user. This endpoint requires the requesting user to
+    be an authorized.
+
+    URL Parameters:
+        username: string, optional
+    Return: array of strings, JSON
+
+    This endpoint queries the database for the user based on the specified username or, if blank, the current user's
+    username. If the user is found in the database, the user's skills are returned in JSON format. If the search fails, an appropriate error message is
+    returned.
+        """
     if not username:
         username = request.userNameFromToken
     else:
@@ -109,6 +143,18 @@ def getSkills(username):
 @user_api.route("/classes/<username>", methods=['GET'])
 @security.JWT.requires_auth
 def getClasses(username):
+    """
+        Endpoint to get classes for a specified user, defaulting to the user. This endpoint requires the requesting user to
+        be an authorized.
+
+        URL Parameters:
+            username: string, optional
+        Return: array of strings, JSON
+
+        This endpoint queries the database for the user based on the specified username or, if blank, the current user's
+        username. If the user is found in the database, the user's classes are returned in JSON format. If the search fails,
+        an appropriate error message is returned.
+            """
     if not username:
         username = request.userNameFromToken
     else:
@@ -140,6 +186,20 @@ def skillClassValidityChecker(data):
 @user_api.route("", methods=['POST'])
 @security.JWT.requires_auth
 def updateUserDetails():
+    """
+        Endpoint to update user details for the current user. This endpoint requires the requesting user to be authorized.
+
+        Request Body Parameters:
+            name: string, JSON, optional
+            github: string, JSON, optional
+            linkedin: string, JSON, optional
+            skills: array of strings, JSON, optional
+            classes: array of strings, JSON, optional
+
+        This endpoint queries the database for the user based on the current user's username. If the user is found in the
+        database, the user's details are set according to the specified fields. If the search fails, an appropriate error
+        message is returned.
+            """
     content = request.get_json()
     username = request.userNameFromToken
     # print(content)
@@ -200,6 +260,16 @@ def updateUserDetails():
 @user_api.route("/skills", methods=['POST'])
 @security.JWT.requires_auth
 def updateSkills():
+    """
+    Endpoint to update skills for the current user. This endpoint requires the requesting user to be authorized.
+
+    Request Body Parameters:
+        skills: array of strings, JSON, required
+
+    This endpoint queries the database for the user based on the current user's username. If the user is found in the
+    database, the user's skills are set according to the specified fields. If the search fails, an appropriate error
+    message is returned.
+       """
     content = request.get_json()
     # print(content)
 
@@ -236,6 +306,16 @@ def updateSkills():
 @user_api.route("/classes", methods=['POST'])
 @security.JWT.requires_auth
 def updateClasses():
+    """
+    Endpoint to update classes for the current user. This endpoint requires the requesting user to be authorized.
+
+    Request Body Parameters:
+        classes: array of strings, JSON, required
+
+    This endpoint queries the database for the user based on the current user's username. If the user is found in the
+    database, the user's classes are set according to the specified fields. If the search fails, an appropriate error
+    message is returned.
+         """
     content = request.get_json()
     # print(content)
 
@@ -272,6 +352,14 @@ def updateClasses():
 @user_api.route("/profilePicture", methods=['GET'])
 @security.JWT.requires_auth
 def getUserPicture():
+    """
+    Endpoint to access the profile picture for the current user. This endpoint requires the requesting user to be
+    authorized.
+
+    This endpoint queries the database for the user based on the current user's username. If the user is found in the
+    database and the user has set a profile picture, the user's profile picture image is fetched from the CloudFront
+    database. If the search fails, an appropriate error message is returned.
+       """
     username = request.args.get('username')
     if not username:
         username = request.userNameFromToken
@@ -296,6 +384,15 @@ def getUserPicture():
 @user_api.route("/profilePicture", methods=['POST'])
 @security.JWT.requires_auth
 def updateUserPicture():
+    """
+    Endpoint to update the profile picture for the current user. This endpoint requires the requesting user to be
+    authorized.
+
+    Request Body Parameters:
+        pic: image, JSON, required
+
+
+            """
     username = request.userNameFromToken
     file = request.files['pic']
     if not file:
