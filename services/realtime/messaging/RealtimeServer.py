@@ -26,8 +26,9 @@ class RealtimeServer(object):
         # Start a new thread for the listener
         try:
             RMSUtil.log("Starting Realtime Messaging Server on PORT 8484 ... ")
+            # Accept connection on port 8484 and route to RMSClient Handler
             self.server = ThreadedTCPServer(("0.0.0.0", 8484), RMSClient)
-            server_thread = threading.Thread(target=self.server.serve_forever)
+            server_thread = threading.Thread(target=self.server.serve_forever) #Keep doing it.
             # Exit the server thread when the main thread terminates
             server_thread.daemon = True
             server_thread.start()

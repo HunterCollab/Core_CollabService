@@ -14,11 +14,11 @@ class RMSClient(socketserver.BaseRequestHandler):
 
     def handle(self):
         try:
-            self.socket = self.request
-            self.addr = self.client_address[0]
+            self.socket = self.request # First get the reference to the socket.
+            self.addr = self.client_address[0] #Get the address
 
-            self.log("New Session")
-            # The first message is the JWT token.
+            self.log("New Session") #Log
+            # The first message is the JWT token. Read it
             token = self.readNextMessage()
             if token is None:
                 self.log("Session Ended PRE_HANDSHAKE")
@@ -26,8 +26,8 @@ class RMSClient(socketserver.BaseRequestHandler):
 
             self.log("Token Received: " + token)
 
-            username = security.JWT.decode_auth_token(token)
-            if username.startswith('SUCCESS'):
+            username = security.JWT.decode_auth_token(token) #Decode the auth token
+            if username.startswith('SUCCESS'): #On success
                 self.username = username[7:]
                 RealtimeServer.getInstance().addClient(self.username, self)
                 self.writeMessage("AUTH_SUCCESS")
@@ -36,7 +36,7 @@ class RMSClient(socketserver.BaseRequestHandler):
                 while (msg):
                     if not msg == "DONE":
                         msg = self.readNextMessage()
-            else:
+            else: #Decoding failed
                 self.writeMessage("AUTH_FAIL")
                 self.log("Invalid Auth - Closing Session")
                 return
@@ -53,7 +53,7 @@ class RMSClient(socketserver.BaseRequestHandler):
     def writeMessage(self, msg):
         RMSProtocol.writeUTF(self.socket, msg)
 
-    def ping(self):
+    def ping(self): #Send "PING" across the socket
         self.log("Pinged")
         self.writeMessage("PING")
 
