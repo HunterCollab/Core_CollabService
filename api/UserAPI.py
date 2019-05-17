@@ -117,8 +117,8 @@ def getSkills(username):
     Return: array of strings, JSON
 
     This endpoint queries the database for the user based on the specified username or, if blank, the current user's
-    username. If the user is found in the database, the user's skills are returned in JSON format. If the search fails, an appropriate error message is
-    returned.
+    username. If the user is found in the database, the user's skills are returned in JSON format. If the search fails,
+    an appropriate error message is returned.
         """
     if not username:
         username = request.userNameFromToken
@@ -144,17 +144,17 @@ def getSkills(username):
 @security.JWT.requires_auth
 def getClasses(username):
     """
-        Endpoint to get classes for a specified user, defaulting to the user. This endpoint requires the requesting user to
-        be an authorized.
+    Endpoint to get classes for a specified user, defaulting to the user. This endpoint requires the requesting user to
+    be an authorized.
 
-        URL Parameters:
-            username: string, optional
-        Return: array of strings, JSON
+    URL Parameters:
+        username: string, optional
+    Return: array of strings, JSON
 
-        This endpoint queries the database for the user based on the specified username or, if blank, the current user's
-        username. If the user is found in the database, the user's classes are returned in JSON format. If the search fails,
-        an appropriate error message is returned.
-            """
+    This endpoint queries the database for the user based on the specified username or, if blank, the current user's
+    username. If the user is found in the database, the user's classes are returned in JSON format. If the search fails,
+    an appropriate error message is returned.
+        """
     if not username:
         username = request.userNameFromToken
     else:
@@ -187,19 +187,19 @@ def skillClassValidityChecker(data):
 @security.JWT.requires_auth
 def updateUserDetails():
     """
-        Endpoint to update user details for the current user. This endpoint requires the requesting user to be authorized.
+    Endpoint to update user details for the current user. This endpoint requires the requesting user to be authorized.
 
-        Request Body Parameters:
-            name: string, JSON, optional
-            github: string, JSON, optional
-            linkedin: string, JSON, optional
-            skills: array of strings, JSON, optional
-            classes: array of strings, JSON, optional
+    Request Body Parameters:
+        name: string, JSON, optional
+        github: string, JSON, optional
+        linkedin: string, JSON, optional
+        skills: array of strings, JSON, optional
+        classes: array of strings, JSON, optional
 
-        This endpoint queries the database for the user based on the current user's username. If the user is found in the
-        database, the user's details are set according to the specified fields. If the search fails, an appropriate error
-        message is returned.
-            """
+    This endpoint queries the database for the user based on the current user's username. If the user is found in the
+    database, the user's details are set according to the specified fields. If the search fails, an appropriate error
+    message is returned.
+         """
     content = request.get_json()
     username = request.userNameFromToken
     # print(content)
