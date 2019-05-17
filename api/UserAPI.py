@@ -175,6 +175,10 @@ def getClasses(username):
 
 
 def skillClassValidityChecker(data):
+    """
+    :param data: arry of strings
+    :return: bool
+    """
     if isinstance(data, list):
         for elem in data:
             if not isinstance(elem, str):
@@ -391,7 +395,9 @@ def updateUserPicture():
     Request Body Parameters:
         pic: image, JSON, required
 
-
+    This endpoint queries the database for the user based on the current user's username. If the user is found in the
+    database, the server uploads the new picture to the database and updates the user's profile picture to that file.
+    If the search fails, an appropriate error message is returned.
             """
     username = request.userNameFromToken
     file = request.files['pic']
