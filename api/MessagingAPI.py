@@ -32,6 +32,11 @@ def getDisplayName(username): #TODO Cache this.
 
 
 def extract_time(json):
+    """
+
+    :param json:
+    :return:
+    """
     try:
         # Also convert to int since update_time will be string.  When comparing
         # strings, "10" is smaller than "2".
@@ -45,6 +50,8 @@ def getConvoList():
     """
     Endpoint to get all conversations involving the current user. This endpoint requires the requesting user to be an
     authenticated user to properly function.
+
+    Return: list of conversation objects
 
     This endpoint queries the database for the conversations with participants based on the current user's username. If
     at least one conversation is found in the database, the conversation details are displayed. If the search fails, an
@@ -89,8 +96,13 @@ def getMessages():
     """
     Endpoint to return a specified page of messages (Conversations are divided into pages of 20 messages each) from a
     specified other user or collaboration. This endpoint requires the requesting user to be an authenticated user to
-    properly function. The requesting user specifies the functionality by specifying either the other user or the
-    collaboration Id in JSON format in the request body.
+    properly function.
+
+    Request Body Parameters:
+        page: int, JSON, required
+        otherUser: string, JSON, optional
+        collabId: string, JSON, optional
+    Return: list of message objects
 
     If the other user is provided, this endpoint queries the database for the current user's conversation with that
     user, divides the conversation into appropriate slices of 20 messages, and returns the list of messages on the
@@ -141,8 +153,12 @@ def getMessages():
 def sendMessage():
     """
     Endpoint to send a message to a specified other user or collaboration. This endpoint requires the requesting user
-    to be an authenticated user to properly function. The requesting user specifies the functionality by specifying
-    either the other user or the collaboration Id in JSON format in the request body.
+    to be an authenticated user to properly function.
+
+    Request Body Parameters:
+        page: int, JSON, required
+        recipient: string, JSON, optional
+        collabId: string, JSON, optional
 
     If the other user is provided, this endpoint queries the database for the current user's conversation with that
     user. If it does not find an existing conversation, it creates an appropriate conversation object. It creates a
