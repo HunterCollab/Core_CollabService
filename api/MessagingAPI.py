@@ -36,6 +36,14 @@ def extract_time(json):
 @messaging_api.route("/myConvos", methods=['GET'])
 @security.JWT.requires_auth
 def getConvoList():
+    """
+    Endpoint to get all conversations involving the current user. This endpoint requires the requesting user to be an
+    authenticated user to properly function.
+
+    This endpoint queries the database for the conversations with participants based on the current user's username. If
+    at least one conversation is found in the database, the conversation details are displayed. If the search fails, an
+    appropriate error message is returned.
+        """
     username = request.userNameFromToken
 
     try:
@@ -72,6 +80,18 @@ def getConvoList():
 @messaging_api.route("/getMessages", methods=['POST'])
 @security.JWT.requires_auth
 def getMessages():
+    """
+    Endpoint to return a specified page of messages (Conversations are divided into pages of 20 messages each) from a
+    specified other user or collaboration. This endpoint requires the requesting user to be an authenticated user to
+    properly function. The requesting user specifies the functionality by specifying either the other user or the
+    collaboration Id in JSON format in the request body.
+
+    If the other user is provided, this endpoint queries the database for the current user's conversation with that
+    user, divides the conversation into appropriate slices of 20 messages, and returns the list of messages on the
+    requested page, if any. If the collaboration Id is provided, this endpoint queries the database for that collaboration's
+    conversation, divides the conversation into appropriate slices of 20 messages, and returns the list of messages on
+    the requested page, if any. If the search fails, an appropriate error message is returned.
+        """
     username = request.userNameFromToken
     data = request.get_json()
     if not ('page' in data):
@@ -113,6 +133,17 @@ def getMessages():
 @messaging_api.route("/sendMessage", methods=['POST'])
 @security.JWT.requires_auth
 def sendMessage():
+    """
+    Endpoint to send a message to a specified other user or collaboration. This endpoint requires the requesting user
+    to be an authenticated user to properly function. The requesting user specifies the functionality by specifying
+    either the other user or the collaboration Id in JSON format in the request body.
+
+    If the other user is provided, this endpoint queries the database for the current user's conversation with that
+    user. If it does not find an existing conversation, it creates an appropriate conversation object. It creates a
+    message object with the specified information and updates the conversation with that message. If the
+    collaboration Id is provided, this endpoint queries the database for that collaboration and updates the specified
+    collaboration's message list. If the search fails, an appropriate error message is returned.
+        """
     username = request.userNameFromToken
     data = request.get_json()
     if not ('message' in data):
