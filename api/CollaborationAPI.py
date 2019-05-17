@@ -15,6 +15,9 @@ collabDB = db.collabs
 
 
 class SetEncoder(json.JSONEncoder):
+    """
+    JSON serializer
+    """
     def default(self, obj):
         if isinstance(obj, set):
             return list(obj)
@@ -97,7 +100,6 @@ def get_collab():
     except Exception as e:
         print(e)
         return json.dumps({'error': "Server error while checking user collaborations.", 'code': 66})
-
 
 @collab_api.route("/getAllCollabs", methods=['GET'])
 @security.JWT.requires_auth
@@ -376,9 +378,9 @@ def join_collab() :
     Request Body Parameters:
         id: string, JSON, required
 
-    This endpoint queries the database for the specified collaboration. If the collaboration is found and the size of its
-    members array is less than the size specified, the user's name is added to the collaboration's members array. If the
-    search fails, an appropriate error message is returned.
+    This endpoint queries the database for the specified collaboration. If the collaboration is found and the size of
+    its members array is less than the size specified, the user's name is added to the collaboration's members array.
+    If the search fails, an appropriate error message is returned.
         """
     username = request.args.get('username')
     if not username:
