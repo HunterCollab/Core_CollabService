@@ -25,6 +25,13 @@ for cls in classesList:
 @search_api.route("/skills", methods=['GET'])
 @security.JWT.requires_auth
 def searchSkills():
+    """
+    Search skill database for potential matches to query
+
+    URL Parameters:
+        query: string, required
+    Return: string, JSON
+    """
     query = request.args.get('query').lower()
     ret = []
     for skill in allDistinctSkills:
@@ -36,6 +43,13 @@ def searchSkills():
 @search_api.route("/classes", methods=['GET'])
 @security.JWT.requires_auth
 def searchClasses():
+    """
+    Search class database for potential matches to query
+
+    URL Parameters:
+        query: string, required
+    Return: string, JSON
+    """
     query = request.args.get('query').lower()
     ret = []
     for _class in allDistinctClasses:
@@ -45,6 +59,9 @@ def searchClasses():
 
 
 def purgeLoop():
+    """
+    Finds all distinct skills and classes in database and populates array for searching. Refreshes every 5 minutes
+    """
     global allDistinctSkills
     global allDistinctClasses
 
