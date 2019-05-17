@@ -60,7 +60,8 @@ def searchClasses():
 
 def purgeLoop():
     """
-    Finds all distinct skills and classes in database and populates array for searching. Refreshes every 5 minutes
+    Finds all distinct skills and classes in database and populates respective arrays for searching. Refreshes every
+    5 minutes
     """
     global allDistinctSkills
     global allDistinctClasses
