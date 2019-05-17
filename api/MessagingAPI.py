@@ -32,11 +32,6 @@ def getDisplayName(username): #TODO Cache this.
 
 
 def extract_time(json):
-    """
-
-    :param json:
-    :return:
-    """
     try:
         # Also convert to int since update_time will be string.  When comparing
         # strings, "10" is smaller than "2".
